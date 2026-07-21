@@ -4,10 +4,10 @@
   /* ==========================================================================
      COMPONENTES DO DASHBOARD E SISTEMA
      ========================================================================== */
-     
+
   /* Painéis e Cards */
   .panel-card {
-    @apply bg-white rounded-xl border border-slate-200 p-5 shadow-sm transition-colors;
+    @apply rounded-xl border border-slate-200 bg-white p-5 text-slate-900 shadow-sm transition-colors;
   }
   .panel-card-hover:hover {
     @apply border-slate-300;
@@ -15,40 +15,60 @@
 
   /* Botões Corporativos */
   .btn-primary {
-    @apply flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors shadow-sm cursor-pointer;
+    @apply flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-blue-700;
   }
   .btn-outline {
-    @apply flex items-center gap-2 text-sm text-slate-600 bg-white border border-slate-200 px-3 py-1.5 rounded-lg shadow-sm;
+    @apply flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm text-slate-900 shadow-sm transition-colors hover:bg-slate-50;
   }
 
   /* Tags de Status (Pílulas) */
   .status-badge-success {
-    @apply bg-emerald-50 text-emerald-700 ring-1 ring-inset ring-emerald-600/20 px-2.5 py-1 text-[11px] font-medium rounded-full;
+    @apply rounded-full bg-green-500/10 px-2.5 py-1 text-xs font-medium text-green-600 ring-1 ring-inset ring-green-500/20;
   }
   .status-badge-warning {
-    @apply bg-amber-50 text-amber-700 ring-1 ring-inset ring-amber-600/20 px-2.5 py-1 text-[11px] font-medium rounded-full;
+    @apply rounded-full bg-blue-500/10 px-2.5 py-1 text-xs font-medium text-blue-600 ring-1 ring-inset ring-blue-500/20;
   }
   .status-badge-neutral {
-    @apply bg-slate-50 text-slate-600 ring-1 ring-inset ring-slate-500/20 px-2.5 py-1 text-[11px] font-medium rounded-full;
+    @apply rounded-full bg-white px-2.5 py-1 text-xs font-medium text-slate-500 ring-1 ring-inset ring-slate-200;
   }
 
   /* Tags de Planos (Quadradas) */
   .plan-tag-basic {
-    @apply text-slate-600 bg-slate-100 px-2.5 py-1 text-[11px] font-medium rounded-md;
+    @apply rounded-md bg-white px-2.5 py-1 text-xs font-medium text-slate-500;
   }
   .plan-tag-pro {
-    @apply text-blue-700 bg-blue-50 px-2.5 py-1 text-[11px] font-medium rounded-md;
+    @apply rounded-md bg-blue-50 px-2.5 py-1 text-xs font-medium text-blue-600;
   }
   .plan-tag-enterprise {
-    @apply text-slate-900 bg-slate-200 font-semibold px-2.5 py-1 text-[11px] font-medium rounded-md;
+    @apply rounded-md bg-white px-2.5 py-1 text-xs font-semibold text-slate-900;
   }
-  
+
   /* Indicadores de Crescimento (Setas nos Cards) */
   .trend-up {
-    @apply flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700;
+    @apply flex items-center gap-1 rounded-md bg-green-500/10 px-2 py-0.5 text-xs font-semibold text-green-600;
   }
   .trend-down {
-    @apply flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-md bg-red-50 text-red-700;
+    @apply flex items-center gap-1 rounded-md bg-red-500/10 px-2 py-0.5 text-xs font-semibold text-red-600;
+  }
+}
+
+@layer utilities {
+  .delay-100 { animation-delay: 100ms; }
+  .delay-200 { animation-delay: 200ms; }
+  .delay-300 { animation-delay: 300ms; }
+  .delay-400 { animation-delay: 400ms; }
+  .delay-500 { animation-delay: 500ms; }
+  .input-dynamic-reactive {
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  }
+  .pointer-events-none {
+    pointer-events: none;
+  }
+  button,
+  input,
+  textarea,
+  select {
+    font: inherit;
   }
 }
 

@@ -95,14 +95,6 @@ export function SearchModal({ open, onClose }: Props) {
     onClose();
   }, [navigate, onClose]);
 
-  const handleResultClick = useCallback((result: typeof allResults[0]) => {
-    if (result.type === 'page') {
-      goTo(result.item.path);
-    } else {
-      goTo(ROUTES.alunos); // ou rota específica do aluno no futuro
-    }
-  }, [goTo]);
-
   if (!open) return null;
 
   return (
@@ -143,7 +135,7 @@ export function SearchModal({ open, onClose }: Props) {
                   <div className="px-5 py-2 text-xs font-semibold text-slate-500 uppercase tracking-widest">
                     Páginas
                   </div>
-                  {filteredPages.map((page, idx) => {
+                  {filteredPages.map((page) => {
                     const globalIndex = allResults.findIndex(r => r.type === 'page' && r.item === page);
                     const isSelected = globalIndex === selectedIndex;
 
@@ -173,7 +165,7 @@ export function SearchModal({ open, onClose }: Props) {
                   <div className="px-5 py-2 text-xs font-semibold text-slate-500 uppercase tracking-widest">
                     Alunos
                   </div>
-                  {(q ? filteredStudents : filteredStudents.slice(0, 5)).map((student, idx) => {
+                  {(q ? filteredStudents : filteredStudents.slice(0, 5)).map((student, index) => {
                     const globalIndex = allResults.findIndex(r => r.type === 'student' && r.item === student);
                     const isSelected = globalIndex === selectedIndex;
 
@@ -185,7 +177,7 @@ export function SearchModal({ open, onClose }: Props) {
                       >
                         <div
                           className="w-9 h-9 rounded-2xl flex items-center justify-center text-white text-sm font-bold shrink-0"
-                          style={{ backgroundColor: AVATAR_COLORS[idx % AVATAR_COLORS.length] }}
+                          style={{ backgroundColor: AVATAR_COLORS[index % AVATAR_COLORS.length] }}
                         >
                           {student.initials}
                         </div>

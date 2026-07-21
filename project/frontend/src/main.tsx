@@ -1,5 +1,8 @@
 import "./styles/global.css";
 import "./styles/tailwind.css";
+import "./styles/typography.css";
+import "./styles/scrollbar.css";
+import "./styles/animations.css";
 import "./styles/utilities.css";
 
 import { StrictMode } from 'react';

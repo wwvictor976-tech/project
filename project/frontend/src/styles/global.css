@@ -20,6 +20,8 @@
 
 /* Resets globais e comportamento adaptável de renderização */
 html, body {
+  margin: 0;
+  min-height: 100vh;
   background-color: rgb(var(--color-background));
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
@@ -43,61 +45,4 @@ input:-webkit-autofill:focus {
   -webkit-text-fill-color: rgb(var(--color-text)) !important;
   -webkit-box-shadow: 0 0 0px 1000px rgb(var(--color-surface)) inset !important;
   transition: background-color 5000s ease-in-out 0s;
-}
-
-@import 'tailwindcss';
-
-@layer components {
-  /* Animações do Dashboard */
-  @keyframes fadeSlideUp {
-    from {
-      opacity: 0;
-      transform: translateY(30px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-
-  @keyframes cardEnter {
-    from {
-      opacity: 0;
-      transform: scale(0.95) translateY(20px);
-    }
-    to {
-      opacity: 1;
-      transform: scale(1) translateY(0);
-    }
-  }
-
-  @keyframes chartPop {
-    from { opacity: 0; transform: scale(0.8); }
-    to { opacity: 1; transform: scale(1); }
-  }
-
-  .animate-fade-slide {
-    animation: fadeSlideUp 0.6s ease-out forwards;
-  }
-
-  .animate-card-enter {
-    animation: cardEnter 0.7s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-  }
-
-  .animate-chart {
-    animation: chartPop 1.2s ease-out forwards;
-  }
-
-  /* Stagger das listas */
-  .stagger-item {
-    animation: fadeSlideUp 0.5s ease-out forwards;
-  }
-}
-
-@layer utilities {
-  .delay-100 { animation-delay: 100ms; }
-  .delay-200 { animation-delay: 200ms; }
-  .delay-300 { animation-delay: 300ms; }
-  .delay-400 { animation-delay: 400ms; }
-  .delay-500 { animation-delay: 500ms; }
 }
