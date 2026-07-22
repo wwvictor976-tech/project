@@ -1,10 +1,9 @@
-/* Suporte para Firefox e padrões modernos */
+/* Scrollbar ultra-fina para dashboards de alta densidade */
 .scrollbar-fine {
   scrollbar-width: thin;
-  scrollbar-color: rgb(var(--color-muted, 148 163 184) / 0.5) transparent;
+  scrollbar-color: rgba(148, 163, 184, 0.3) transparent;
 }
 
-/* WebKit (Chrome, Safari, Edge, Opera) */
 .scrollbar-fine::-webkit-scrollbar {
   width: 4px;
   height: 4px;
@@ -15,10 +14,33 @@
 }
 
 .scrollbar-fine::-webkit-scrollbar-thumb {
-  background: rgb(var(--color-muted, 148 163 184) / 0.5);
+  background: rgba(148, 163, 184, 0.3);
   border-radius: 9999px;
 }
 
 .scrollbar-fine::-webkit-scrollbar-thumb:hover {
-  background: rgb(var(--color-muted, 148 163 184) / 0.8);
+  background: rgba(100, 116, 139, 0.6);
+}
+
+/* Scrollbar dedicada para a Sidebar Dark */
+.sidebar-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.12) transparent;
+}
+
+.sidebar-scrollbar::-webkit-scrollbar {
+  width: 4px;
+}
+
+.sidebar-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.sidebar-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 9999px;
+}
+
+.sidebar-scrollbar:hover::-webkit-scrollbar-thumb {
+  background: rgba(59, 130, 246, 0.5);
 }

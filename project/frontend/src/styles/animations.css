@@ -1,12 +1,12 @@
 /* ==========================================================================
-   KEYFRAMES DEFINITIONS 
+   KEYFRAMES DEFINITIONS - ENTERPRISE
    ========================================================================== */
 
-/* Entrada suave do card */
+/* Entrada suave de cards e painéis */
 @keyframes cardEnter {
   from {
     opacity: 0;
-    transform: translateY(8px);
+    transform: translateY(6px);
   }
   to {
     opacity: 1;
@@ -14,16 +14,7 @@
   }
 }
 
-/* Validação física elástica (Tremor de erro) */
-@keyframes authElasticShake {
-  0%, 100% { transform: translateX(0); }
-  20% { transform: translateX(-5px); }
-  40% { transform: translateX(5px); }
-  60% { transform: translateX(-2.5px); }
-  80% { transform: translateX(2.5px); }
-}
-
-/* Surgimento dos elementos textuais e erros */
+/* Transição de revelação suave */
 @keyframes fadeSlideIn {
   from {
     opacity: 0;
@@ -35,31 +26,19 @@
   }
 }
 
-/* Fade simples (alias para cardEnter - compatibilidade) */
+/* Surgimento simples sem salto */
 @keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
-/* Feedback de sucesso (Checkmark pop) */
+/* Feedback de confirmação discreto */
 @keyframes popIn {
-  0% { transform: scale(0.5); opacity: 0; }
+  0% { transform: scale(0.96); opacity: 0; }
   100% { transform: scale(1); opacity: 1; }
 }
 
-/* Movimentação flutuante dos Orbs ao fundo */
-@keyframes floatOrb {
-  0% { transform: translateY(0) scale(1); }
-  100% { transform: translateY(-30px) scale(1.05); }
-}
-
-/* Rotação e preenchimento do spinner de carregamento */
+/* Spinner corporativo fino */
 @keyframes rotate {
   100% { transform: rotate(360deg); }
 }
@@ -69,7 +48,7 @@
   100% { stroke-dasharray: 90, 150; stroke-dashoffset: -124; }
 }
 
-/* Pulso de glow (status dots ativos) */
+/* Indicador de status pulsante */
 @keyframes pulseGlow {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.4; }
@@ -79,52 +58,39 @@
    ANIMATION UTILITIES MAPPING
    ========================================================================== */
 .animate-card-enter {
-  animation: cardEnter 0.45s cubic-bezier(0.4, 0, 0.2, 1) both;
+  animation: cardEnter 0.25s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
-/* Alias para compatibilidade com Dashboard */
 .animate-fade-in {
-  animation: fadeIn 0.45s cubic-bezier(0.4, 0, 0.2, 1) both;
-}
-
-.animate-elastic-shake {
-  animation: authElasticShake 0.4s cubic-bezier(0.68, -0.55, 0.26, 1.55) both;
+  animation: fadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 .animate-fade-slide {
-  animation: fadeSlideIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: fadeSlideIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 .animate-pop-in {
-  animation: popIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-
-.animate-orb-float {
-  animation: floatOrb 15s ease-in-out infinite alternate;
+  animation: popIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 .animate-spinner-rotate {
-  animation: rotate 2s linear infinite;
+  animation: rotate 1.5s linear infinite;
 }
 
 .animate-spinner-dash {
-  animation: dash 1.5s ease-in-out infinite;
+  animation: dash 1.2s ease-in-out infinite;
 }
 
 .animate-pulse-glow {
   animation: pulseGlow 2s ease-in-out infinite;
 }
 
-/* ==========================================================================
-   ACCESSIBILITY: PREFERS REDUCED MOTION
-   ========================================================================== */
+/* Respeito às preferências de movimento reduzido */
 @media (prefers-reduced-motion: reduce) {
   .animate-card-enter,
   .animate-fade-in,
-  .animate-elastic-shake,
   .animate-fade-slide,
   .animate-pop-in,
-  .animate-orb-float,
   .animate-spinner-rotate,
   .animate-pulse-glow {
     animation: none !important;

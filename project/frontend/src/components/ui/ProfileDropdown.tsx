@@ -1,20 +1,24 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
-  ChevronDown, User, Settings, Shield,
-  LogOut, Moon, Sun, ExternalLink,
+  ChevronDown,
+  User,
+  Settings,
+  Shield,
+  LogOut,
+  ExternalLink,
 } from 'lucide-react';
 import { ROUTES } from '@/constants/routes';
 import { useAuth } from '@/app/auth';
 
 export function ProfileDropdown() {
   const [open, setOpen] = useState(false);
-  const [isDark, setIsDark] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const { logout } = useAuth();
   const navigate = useNavigate();
 
-  /* Click outside */
+  /* Fechar ao clicar fora */
   useEffect(() => {
     const handler = (e: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
@@ -32,116 +36,133 @@ export function ProfileDropdown() {
   }, [logout, navigate]);
 
   const menuItems = [
-    { icon: User, label: 'Meu perfil', action: () => { setOpen(false); navigate(ROUTES.perfil); } },
-    { icon: Settings, label: 'Configurações', action: () => { setOpen(false); navigate(ROUTES.configuracoes); } },
-    { icon: Shield, label: 'Segurança', action: () => { setOpen(false); navigate(`${ROUTES.configuracoes}#seguranca`); } },
-    { icon: ExternalLink, label: 'Central de Suporte', action: () => { setOpen(false); window.open('https://support.atlhon.com', '_blank'); } },
+    {
+      icon: User,
+      label: 'Meu perfil',
+      action: () => {
+        setOpen(false);
+        navigate(ROUTES.perfil);
+      },
+    },
+    {
+      icon: Settings,
+      label: 'Configurações',
+      action: () => {
+        setOpen(false);
+        navigate(ROUTES.configuracoes);
+      },
+    },
+    {
+      icon: Shield,
+      label: 'Segurança',
+      action: () => {
+        setOpen(false);
+        navigate(`${ROUTES.configuracoes}#seguranca`);
+      },
+    },
+    {
+      icon: ExternalLink,
+      label: 'Central de Suporte',
+      action: () => {
+        setOpen(false);
+        window.open('https://support.atlhon.com', '_blank');
+      },
+    },
   ];
 
   return (
-    <div ref={dropdownRef} className="relative">
-      {/* Trigger */}
+    <div ref={dropdownRef} className="relative inline-block text-left">
+      
+      {/* ── BOTÃO TRIGGER ── */}
       <button
-        onClick={() => setOpen(v => !v)}
+        type="button"
+        onClick={() => setOpen((v) => !v)}
         className={`
-          flex items-center gap-2 h-9 pl-1 pr-3 rounded-2xl transition-all duration-200
-          ${open ? 'bg-blue-50' : 'hover:bg-slate-100'}
+          flex items-center gap-2 p-1.5 rounded-lg transition-colors cursor-pointer focus:outline-none
+          ${open ? 'bg-slate-100' : 'hover:bg-slate-100/80'}
         `}
         aria-expanded={open}
         aria-haspopup="true"
       >
-        {/* Avatar */}
-        <div className="w-8 h-8 rounded-2xl bg-gradient-to-br from-blue-700 to-indigo-700 flex items-center justify-center text-white text-xs font-bold ring-2 ring-white">
+        {/* Avatar Sóbrio */}
+        <div className="w-7 h-7 rounded-md bg-slate-900 border border-slate-800 flex items-center justify-center text-slate-100 text-[11px] font-mono font-semibold shrink-0">
           AD
         </div>
 
-        <div className="hidden sm:block text-left">
-          <p className="text-sm font-semibold text-slate-800">Admin</p>
-          <p className="text-[10px] text-slate-500 -mt-0.5">Administrador</p>
+        <div className="hidden sm:block text-left leading-tight">
+          <p className="text-xs font-medium text-slate-900">Admin Demo</p>
+          <p className="text-[10px] text-slate-500 font-mono">Administrador</p>
         </div>
 
         <ChevronDown
-          size={14}
-          className={`text-slate-400 transition-transform ${open ? 'rotate-180' : ''}`}
+          size={13}
+          className={`text-slate-400 transition-transform duration-200 ${open ? 'rotate-180 text-slate-700' : ''}`}
         />
       </button>
 
-      {/* Dropdown */}
-      {open && (
-        <div className="absolute right-0 top-[calc(100%+8px)] w-72 bg-white rounded-3xl shadow-xl border border-slate-100 overflow-hidden z-50">
-          {/* User Info */}
-          <div className="px-5 py-5 border-b border-slate-100">
-            <div className="flex items-center gap-3">
-              <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-blue-700 to-indigo-700 flex items-center justify-center text-white text-base font-bold">
-                AD
-              </div>
-              <div className="min-w-0 flex-1">
-                <p className="font-semibold text-slate-900">Admin Demo</p>
-                <p className="text-sm text-slate-500 truncate">admin@atlhon.com</p>
-              </div>
-            </div>
-
-            {/* Plan */}
-            <div className="mt-4 flex items-center justify-between bg-slate-50 rounded-2xl px-4 py-3">
-              <div className="flex items-center gap-2">
-                <Shield size={16} className="text-blue-600" />
-                <div>
-                  <p className="text-sm font-semibold text-slate-700">Enterprise</p>
-                  <p className="text-xs text-emerald-600 font-medium">Ativo</p>
+      {/* ── DROPDOWN FLUTUANTE ── */}
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            initial={{ opacity: 0, y: 6, scale: 0.98 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 6, scale: 0.98 }}
+            transition={{ duration: 0.15, ease: 'easeOut' }}
+            className="absolute right-0 top-[calc(100%+6px)] w-64 bg-white rounded-xl shadow-xl border border-slate-200/90 overflow-hidden z-50 flex flex-col text-xs"
+          >
+            {/* ── DADOS DO USUÁRIO & PLANO ── */}
+            <div className="p-3 border-b border-slate-100 bg-slate-50/50 space-y-2.5">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-lg bg-slate-900 border border-slate-800 flex items-center justify-center text-white text-xs font-mono font-semibold shrink-0">
+                  AD
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="font-semibold text-slate-900 truncate">Admin Demo</p>
+                  <p className="text-[11px] text-slate-500 truncate font-mono">admin@atlhon.com</p>
                 </div>
               </div>
-              <span className="text-xs bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full font-medium">
-                Plano atual
-              </span>
-            </div>
-          </div>
 
-          {/* Menu */}
-          <div className="py-2">
-            {menuItems.map(({ icon: Icon, label, action }) => (
+              {/* Tag do Plano Atual */}
+              <div className="flex items-center justify-between bg-white border border-slate-200/80 rounded-lg p-2 shadow-2xs">
+                <div className="flex items-center gap-1.5">
+                  <Shield size={13} className="text-indigo-600" />
+                  <span className="font-medium text-slate-800">Plano Corporativo</span>
+                </div>
+                <span className="text-[10px] font-mono font-medium text-emerald-700 bg-emerald-50 px-1.5 py-0.2 rounded border border-emerald-200/60">
+                  Ativo
+                </span>
+              </div>
+            </div>
+
+            {/* ── LINKS DO MENU ── */}
+            <div className="p-1 space-y-0.5">
+              {menuItems.map(({ icon: Icon, label, action }) => (
+                <button
+                  key={label}
+                  type="button"
+                  onClick={action}
+                  className="w-full flex items-center gap-2.5 px-2.5 py-1.5 text-xs text-slate-700 hover:text-slate-900 hover:bg-slate-100/70 rounded-md transition-colors cursor-pointer"
+                >
+                  <Icon size={14} className="text-slate-400 shrink-0" />
+                  <span>{label}</span>
+                </button>
+              ))}
+            </div>
+
+            {/* ── LOGOUT ── */}
+            <div className="p-1 border-t border-slate-100 bg-slate-50/50">
               <button
-                key={label}
-                onClick={action}
-                className="w-full flex items-center gap-3 px-5 py-3 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
+                type="button"
+                onClick={handleLogout}
+                className="w-full flex items-center gap-2.5 px-2.5 py-1.5 text-xs font-medium text-rose-600 hover:bg-rose-50 rounded-md transition-colors cursor-pointer"
               >
-                <Icon size={17} className="text-slate-400" />
-                {label}
+                <LogOut size={14} className="shrink-0" />
+                <span>Sair da conta</span>
               </button>
-            ))}
-          </div>
-
-          {/* Theme Toggle */}
-          <div className="mx-4 my-1 px-5 py-3 border-y border-slate-100 flex items-center justify-between bg-slate-50 rounded-2xl">
-            <div className="flex items-center gap-3">
-              {isDark ? <Moon size={17} /> : <Sun size={17} />}
-              <span className="text-sm font-medium text-slate-700">
-                {isDark ? 'Modo Escuro' : 'Modo Claro'}
-              </span>
             </div>
-
-            <button
-              onClick={() => setIsDark(v => !v)}
-              className={`relative w-11 h-6 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-300 ${isDark ? 'bg-blue-600' : 'bg-slate-300'}`}
-              aria-label="Alternar tema"
-            >
-              <span
-                className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-all duration-200 ${isDark ? 'translate-x-6' : 'translate-x-0.5'}`}
-              />
-            </button>
-          </div>
-
-          {/* Logout */}
-          <div className="p-2">
-            <button
-              onClick={handleLogout}
-              className="w-full flex items-center gap-3 px-5 py-3 text-sm font-medium text-red-600 hover:bg-red-50 rounded-2xl transition-colors"
-            >
-              <LogOut size={17} />
-              Sair da conta
-            </button>
-          </div>
-        </div>
-      )}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

@@ -1,15 +1,22 @@
-import { useState } from 'react';
+import { useState, useMemo, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   Download,
   BarChart2,
   Users,
   DollarSign,
   TrendingUp,
-  Calendar,
   FileText,
-  Sparkles,
   ArrowUpRight,
   ArrowDownRight,
+  Award,
+  Star,
+  UserCheck,
+  UserX,
+  Target,
+  Inbox,
+  RefreshCw,
+  AlertTriangle,
 } from 'lucide-react';
 import {
   AreaChart,
@@ -26,260 +33,519 @@ import {
   Bar,
 } from 'recharts';
 
-const retencionData = [
-  { month: 'Jan', retencao: 91.2 },
-  { month: 'Fev', retencao: 92.5 },
-  { month: 'Mar', retencao: 90.8 },
-  { month: 'Abr', retencao: 93.1 },
-  { month: 'Mai', retencao: 94.0 },
-  { month: 'Jun', retencao: 94.2 },
-  { month: 'Jul', retencao: 95.1 },
-];
+/* ── Contratoes de Dados da API / Backend ── */
+export type ReportCategory = 'geral' | 'alunos' | 'financeiro' | 'instrutores';
 
-const matriculasData = [
-  { month: 'Jan', novas: 14, cancelamentos: 6 },
-  { month: 'Fev', novas: 18, cancelamentos: 4 },
-  { month: 'Mar', novas: 22, cancelamentos: 7 },
-  { month: 'Abr', novas: 19, cancelamentos: 5 },
-  { month: 'Mai', novas: 25, cancelamentos: 3 },
-  { month: 'Jun', novas: 28, cancelamentos: 4 },
-  { month: 'Jul', novas: 12, cancelamentos: 2 },
-];
-
-const planDistribution = [
-  { name: 'Basic',      value: 92,  color: '#94a3b8' },
-  { name: 'Pro',        value: 118, color: '#2563eb' },
-  { name: 'Enterprise', value: 38,  color: '#0f172a' },
-];
-
-const topInstructors = [
-  { name: 'Carlos Eduardo', aulas: 42, alunos: 38, nota: 4.9 },
-  { name: 'Juliana Torres',  aulas: 36, alunos: 31, nota: 4.8 },
-  { name: 'Maria Clara',     aulas: 34, alunos: 29, nota: 4.9 },
-  { name: 'Fernanda Lima',   aulas: 28, alunos: 24, nota: 4.7 },
-  { name: 'Roberto Alves',   aulas: 22, alunos: 19, nota: 4.6 },
-];
-
-interface TooltipProps {
-  active?: boolean;
-  payload?: Array<{ value?: number; name?: string; color?: string }>;
-  label?: string;
+export interface RetentionMetric {
+  month: string;
+  retencao: number;
 }
 
-function ChartTooltip({ active, payload, label }: TooltipProps) {
-  if (!active || !payload?.length) return null;
-  return (
-    <div className="bg-slate-900/95 backdrop-blur-md text-white px-4 py-3 rounded-xl shadow-xl border border-slate-700/50 text-xs space-y-1">
-      <p className="font-medium text-slate-400 mb-1">{label}</p>
-      {payload.map((p, i) => (
-        <p key={i} style={{ color: p.color }} className="font-semibold">
-          {p.name}: {typeof p.value === 'number' && p.name?.includes('%') ? `${p.value}%` : p.value}
-        </p>
-      ))}
-    </div>
-  );
+export interface EnrollmentMetric {
+  month: string;
+  novas: number;
+  cancelamentos: number;
 }
 
-const REPORT_TYPES = [
-  { id: 'geral',       label: 'Visão Geral',   icon: BarChart2 },
-  { id: 'alunos',      label: 'Alunos',        icon: Users },
-  { id: 'financeiro',  label: 'Financeiro',    icon: DollarSign },
-  { id: 'instrutores', label: 'Instrutores',   icon: TrendingUp },
+export interface PlanDistributionMetric {
+  name: string;
+  value: number;
+  color: string;
+}
+
+export interface InstructorMetric {
+  id: number;
+  name: string;
+  avatar: string;
+  classesCount: number;
+  studentsCount: number;
+  rating: number;
+}
+
+export interface ReportsSummary {
+  retentionRate: number;
+  retentionChange: number;
+  newEnrollments: number;
+  enrollmentsChange: number;
+  cancellations: number;
+  cancellationsChange: number;
+  averageTicket: number;
+  ticketChange: number;
+}
+
+/* ── Custom Tooltip do Recharts ── */
+const CustomChartTooltip = ({ active, payload, label }: any) => {
+  if (active && payload && payload.length) {
+    return (
+      <div className="bg-slate-900 text-slate-100 px-3 py-2 rounded-lg text-xs shadow-xl border border-slate-800 space-y-1">
+        <p className="font-medium text-slate-400">{label}</p>
+        {payload.map((p: any, index: number) => (
+          <div key={index} className="flex items-center justify-between gap-4 font-mono">
+            <span className="flex items-center gap-1.5 text-slate-300">
+              <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: p.color }} />
+              {p.name}:
+            </span>
+            <span className="font-semibold">
+              {typeof p.value === 'number' && p.name?.includes('%') ? `${p.value}%` : p.value}
+            </span>
+          </div>
+        ))}
+      </div>
+    );
+  }
+  return null;
+};
+
+/* ── Animações Framer Motion ── */
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: { staggerChildren: 0.04 },
+  },
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 8 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.2 } },
+};
+
+const REPORT_TYPES: { id: ReportCategory; label: string; icon: React.ElementType }[] = [
+  { id: 'geral', label: 'Visão Geral', icon: BarChart2 },
+  { id: 'alunos', label: 'Alunos & Retenção', icon: Users },
+  { id: 'financeiro', label: 'Métricas Financeiras', icon: DollarSign },
+  { id: 'instrutores', label: 'Desempenho da Equipe', icon: Award },
 ];
 
 const PERIODS = ['Últimos 7 dias', 'Este mês', 'Últimos 3 meses', 'Este ano'];
 
 export default function Relatorios() {
-  const [activeReport, setActiveReport] = useState('geral');
+  const [activeReport, setActiveReport] = useState<ReportCategory>('geral');
   const [period, setPeriod] = useState('Este mês');
 
-  return (
-    <div className="space-y-6 text-slate-800">
+  /* ── Estados para Conexão com API ── */
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
 
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+  /* Dados vindos do Backend (Iniciam Zerados) */
+  const [summary, setSummary] = useState<ReportsSummary>({
+    retentionRate: 0,
+    retentionChange: 0,
+    newEnrollments: 0,
+    enrollmentsChange: 0,
+    cancellations: 0,
+    cancellationsChange: 0,
+    averageTicket: 0,
+    ticketChange: 0,
+  });
+
+  const [enrollmentsData, setEnrollmentsData] = useState<EnrollmentMetric[]>([]);
+  const [planDistribution, setPlanDistribution] = useState<PlanDistributionMetric[]>([]);
+  const [retentionData, setRetentionData] = useState<RetentionMetric[]>([]);
+  const [instructors, setInstructors] = useState<InstructorMetric[]>([]);
+
+  /* ── Efeito de Busca no Backend ── */
+  useEffect(() => {
+    async function fetchReports() {
+      setIsLoading(true);
+      setError(null);
+
+      try {
+        /* TODO: Substituir por chamada real da API
+           Exemplo:
+           const response = await api.get(`/reports?type=${activeReport}&period=${encodeURIComponent(period)}`);
+           setSummary(response.data.summary);
+           setEnrollmentsData(response.data.enrollments);
+           ...
+        */
+        await new Promise((resolve) => setTimeout(resolve, 300)); // Simulação de latency
+      } catch (err) {
+        setError('Falha ao carregar métricas do servidor.');
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    fetchReports();
+  }, [activeReport, period]);
+
+  /* Totalizador seguro contra divisão por zero */
+  const totalPlanCount = useMemo(
+    () => planDistribution.reduce((acc, curr) => acc + curr.value, 0),
+    [planDistribution]
+  );
+
+  return (
+    <motion.div
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+      className="space-y-6 max-w-[1600px] mx-auto pb-8"
+    >
+      {/* ── HEADER SUPERIOR ── */}
+      <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200/80 pb-4">
         <div>
-          <div className="flex items-center gap-2 animate-fade-slide">
-            <h1 className="text-2xl font-semibold text-slate-800 tracking-tight">Relatórios</h1>
-            <span className="page-tag">
-              <Sparkles className="w-3 h-3 text-blue-500" /> Análise
+          <div className="flex items-center gap-2">
+            <h1 className="text-xl font-semibold text-slate-900 tracking-tight">Relatórios & Analytics</h1>
+            <span className="text-[11px] font-mono font-medium px-2 py-0.5 bg-slate-100 text-slate-600 rounded-md border border-slate-200">
+              Desempenho Global
             </span>
           </div>
-          <p className="text-sm text-slate-500 mt-1 animate-fade-slide delay-100">
-            Métricas e indicadores de performance da plataforma
+          <p className="text-xs text-slate-500 mt-0.5">
+            Análise consolidada de retenção, aquisição de alunos, receitas e produtividade.
           </p>
         </div>
-        <div className="flex items-center gap-3 animate-fade-slide delay-200">
+
+        <div className="flex items-center gap-2.5 flex-wrap">
           <div className="relative">
-            <select value={period} onChange={(e) => setPeriod(e.target.value)}
-              className="input-field pl-3 pr-8 py-2 appearance-none cursor-pointer text-slate-700 text-xs">
-              {PERIODS.map((p) => <option key={p}>{p}</option>)}
+            <select
+              value={period}
+              onChange={(e) => setPeriod(e.target.value)}
+              className="bg-white border border-slate-200/80 px-2.5 py-1.5 rounded-lg text-xs font-medium text-slate-700 focus:outline-none cursor-pointer"
+            >
+              {PERIODS.map((p) => (
+                <option key={p} value={p}>
+                  {p}
+                </option>
+              ))}
             </select>
-            <Calendar size={13} className="absolute right-3 top-3 text-slate-400 pointer-events-none" />
           </div>
-          <button type="button" className="btn-outline" onClick={() => alert('Exportando relatório...')}>
-            <Download className="w-4 h-4 text-slate-500" />
+
+          <button
+            type="button"
+            onClick={() => alert('Exportando relatório consolidado...')}
+            disabled={isLoading || (enrollmentsData.length === 0 && instructors.length === 0)}
+            className="inline-flex items-center gap-2 px-3 py-1.5 text-xs font-medium text-slate-700 bg-white border border-slate-200/90 rounded-lg hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-2xs cursor-pointer"
+          >
+            <Download size={14} className="text-slate-400" />
             <span>Exportar PDF</span>
           </button>
         </div>
-      </div>
+      </header>
 
-      {/* Report Type Tabs */}
-      <div className="flex gap-2 overflow-x-auto pb-1 animate-fade-slide delay-100">
+      {/* ── SELETOR DE MÓDULO DE RELATÓRIO ── */}
+      <motion.div variants={itemVariants} className="flex bg-slate-200/60 p-0.5 rounded-lg text-xs font-medium max-w-xl">
         {REPORT_TYPES.map(({ id, label, icon: Icon }) => (
-          <button key={id} type="button" onClick={() => setActiveReport(id)}
-            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all border shrink-0 cursor-pointer ${
+          <button
+            key={id}
+            type="button"
+            onClick={() => setActiveReport(id)}
+            className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-md transition-all cursor-pointer whitespace-nowrap ${
               activeReport === id
-                ? 'bg-blue-600 text-white border-blue-600 shadow-sm shadow-blue-200'
-                : 'bg-white text-slate-600 border-slate-200 hover:border-blue-300 hover:text-blue-600'
-            }`}>
-            <Icon size={14} />
-            {label}
+                ? 'bg-white text-slate-900 font-semibold shadow-2xs'
+                : 'text-slate-600 hover:text-slate-900'
+            }`}
+          >
+            <Icon size={13} />
+            <span>{label}</span>
           </button>
         ))}
-      </div>
+      </motion.div>
 
-      {/* Summary KPIs */}
-      <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
-        {[
-          { label: 'Taxa de Retenção',  value: '95.1%',  change: '+0.9%',  up: true  },
-          { label: 'Novas Matrículas',  value: '12',     change: '+4',     up: true  },
-          { label: 'Receita (Mês)',     value: 'R$ 11,2k', change: '+12%', up: true  },
-          { label: 'Ticket Médio',      value: 'R$ 247', change: '-R$ 8',  up: false },
-        ].map((stat, i) => (
-          <div key={i} className="panel-card-sm animate-card-enter flex flex-col justify-between" style={{ animationDelay: `${i * 0.07}s` }}>
-            <p className="text-[11px] font-medium text-slate-400 uppercase tracking-wider">{stat.label}</p>
-            <p className="text-2xl font-bold text-slate-800 mt-2 mb-3">{stat.value}</p>
-            <div className={stat.up ? 'trend-up' : 'trend-down'}>
-              {stat.up ? <ArrowUpRight size={11} strokeWidth={2.5} /> : <ArrowDownRight size={11} strokeWidth={2.5} />}
-              {stat.change}
+      {/* ── MENSAGEM DE ERRO NA API ── */}
+      <AnimatePresence>
+        {error && (
+          <motion.div
+            initial={{ opacity: 0, y: -4 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -4 }}
+            className="p-3 bg-rose-50 border border-rose-200/80 rounded-lg text-xs text-rose-700 flex items-center justify-between"
+          >
+            <div className="flex items-center gap-2">
+              <AlertTriangle size={15} />
+              <span>{error}</span>
             </div>
-          </div>
-        ))}
-      </div>
+            <button
+              type="button"
+              onClick={() => setActiveReport(activeReport)}
+              className="font-medium underline hover:text-rose-800 cursor-pointer"
+            >
+              Tentar novamente
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-      {/* Main Charts */}
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-5">
-        <div className="xl:col-span-2 panel-card animate-fade-slide" style={{ animationDelay: '0.3s' }}>
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-6">
+      {/* ── KPIS DE RESUMO EXECUTIVO ── */}
+      <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+        
+        {/* KPI 1: Retenção */}
+        <motion.div variants={itemVariants} className="p-4 bg-white border border-slate-200/80 rounded-xl shadow-2xs">
+          <div className="flex justify-between items-start text-xs text-slate-500 font-medium">
+            <span>Taxa de Retenção</span>
+            <Target size={16} className="text-emerald-600" />
+          </div>
+          <div className="mt-2 flex items-baseline gap-2">
+            <span className="text-2xl font-bold font-mono text-slate-900 tracking-tight">
+              {isLoading ? '—' : `${summary.retentionRate}%`}
+            </span>
+            {summary.retentionChange !== 0 && (
+              <span className={`text-xs font-mono font-medium flex items-center ${summary.retentionChange > 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                {summary.retentionChange > 0 ? <ArrowUpRight size={12} /> : <ArrowDownRight size={12} />}
+                {summary.retentionChange}%
+              </span>
+            )}
+          </div>
+          <p className="mt-3 text-[11px] text-slate-500 truncate">Média de permanência da base</p>
+        </motion.div>
+
+        {/* KPI 2: Novas Matrículas */}
+        <motion.div variants={itemVariants} className="p-4 bg-white border border-slate-200/80 rounded-xl shadow-2xs">
+          <div className="flex justify-between items-start text-xs text-slate-500 font-medium">
+            <span>Novas Matrículas</span>
+            <UserCheck size={16} className="text-blue-600" />
+          </div>
+          <div className="mt-2 flex items-baseline gap-2">
+            <span className="text-2xl font-bold font-mono text-slate-900 tracking-tight">
+              {isLoading ? '—' : summary.newEnrollments}
+            </span>
+          </div>
+          <p className="mt-3 text-[11px] text-slate-500 truncate">Novos contratos no período</p>
+        </motion.div>
+
+        {/* KPI 3: Cancelamentos */}
+        <motion.div variants={itemVariants} className="p-4 bg-white border border-slate-200/80 rounded-xl shadow-2xs">
+          <div className="flex justify-between items-start text-xs text-slate-500 font-medium">
+            <span>Cancelamentos (Churn)</span>
+            <UserX size={16} className="text-rose-600" />
+          </div>
+          <div className="mt-2 flex items-baseline gap-2">
+            <span className="text-2xl font-bold font-mono text-slate-900 tracking-tight">
+              {isLoading ? '—' : summary.cancellations}
+            </span>
+          </div>
+          <p className="mt-3 text-[11px] text-slate-500 truncate">Saídas registradas no período</p>
+        </motion.div>
+
+        {/* KPI 4: Ticket Médio */}
+        <motion.div variants={itemVariants} className="p-4 bg-white border border-slate-200/80 rounded-xl shadow-2xs">
+          <div className="flex justify-between items-start text-xs text-slate-500 font-medium">
+            <span>Ticket Médio</span>
+            <DollarSign size={16} className="text-indigo-600" />
+          </div>
+          <div className="mt-2 flex items-baseline gap-2">
+            <span className="text-2xl font-bold font-mono text-slate-900 tracking-tight">
+              {isLoading ? '—' : `R$ ${summary.averageTicket}`}
+            </span>
+          </div>
+          <p className="mt-3 text-[11px] text-slate-500 truncate">Valor médio por assinatura</p>
+        </motion.div>
+
+      </section>
+
+      {/* ── PAINEL DE GRÁFICOS PRINCIPAIS ── */}
+      <section className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+
+        {/* Gráfico 1: Aquisição vs. Evasão */}
+        <motion.div variants={itemVariants} className="lg:col-span-8 p-5 bg-white border border-slate-200/80 rounded-xl shadow-2xs flex flex-col justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
             <div>
-              <h3 className="text-base font-semibold text-slate-800">Novas Matrículas vs. Cancelamentos</h3>
-              <p className="text-slate-400 text-[13px] mt-0.5">Fluxo mensal de alunos</p>
+              <h2 className="text-sm font-semibold text-slate-900">Aquisição vs. Evasão de Alunos</h2>
+              <p className="text-xs text-slate-500">Fluxo mensal de entradas e cancelamentos</p>
             </div>
-            <div className="flex items-center gap-4 text-xs text-slate-500">
-              <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded bg-blue-500 shrink-0" /> Novas</span>
-              <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded bg-rose-400 shrink-0" /> Cancelamentos</span>
-            </div>
-          </div>
-          <div className="h-[260px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={matriculasData} margin={{ top: 4, right: 4, left: -24, bottom: 0 }} barCategoryGap="35%">
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                <XAxis dataKey="month" stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={false} />
-                <YAxis stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={false} />
-                <Tooltip content={<ChartTooltip />} />
-                <Bar dataKey="novas"          name="Novas"          fill="#2563eb" radius={[5, 5, 0, 0]} />
-                <Bar dataKey="cancelamentos"  name="Cancelamentos"  fill="#fca5a5" radius={[5, 5, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
 
-        <div className="panel-card animate-fade-slide" style={{ animationDelay: '0.4s' }}>
-          <h3 className="text-base font-semibold text-slate-800 mb-1">Distribuição por Plano</h3>
-          <p className="text-slate-400 text-[13px] mb-4">Assinaturas ativas</p>
-          <div className="relative flex items-center justify-center h-[180px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie data={planDistribution} cx="50%" cy="50%" innerRadius={60} outerRadius={82} paddingAngle={3} dataKey="value" stroke="none">
-                  {planDistribution.map((entry, i) => (
-                    <Cell key={i} fill={entry.color} />
-                  ))}
-                </Pie>
-                <Tooltip />
-              </PieChart>
-            </ResponsiveContainer>
-            <div className="absolute flex flex-col items-center justify-center pointer-events-none">
-              <span className="text-xl font-bold text-slate-800">248</span>
-              <span className="text-[10px] text-slate-400 font-medium uppercase tracking-wider">alunos</span>
+            <div className="flex items-center gap-3 text-xs font-medium text-slate-600">
+              <span className="flex items-center gap-1.5">
+                <span className="w-2.5 h-2.5 rounded bg-blue-600" /> Novas
+              </span>
+              <span className="flex items-center gap-1.5">
+                <span className="w-2.5 h-2.5 rounded bg-rose-400" /> Cancelamentos
+              </span>
             </div>
           </div>
-          <div className="space-y-3 mt-4 pt-4 border-t border-slate-100">
-            {planDistribution.map((plan) => {
-              const pct = ((plan.value / 248) * 100).toFixed(0);
-              return (
-                <div key={plan.name} className="space-y-1">
-                  <div className="flex justify-between text-xs">
-                    <span className="flex items-center gap-2 text-slate-600 font-medium">
-                      <span className="w-2 h-2 rounded-full" style={{ backgroundColor: plan.color }} />
-                      {plan.name}
-                    </span>
-                    <span className="text-slate-500">{plan.value} <span className="text-slate-300">({pct}%)</span></span>
-                  </div>
-                  <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                    <div className="h-full rounded-full" style={{ width: `${pct}%`, backgroundColor: plan.color }} />
-                  </div>
+
+          <div className="h-[230px] w-full relative flex items-center justify-center">
+            {isLoading ? (
+              <div className="flex items-center gap-2 text-xs text-slate-400">
+                <RefreshCw size={14} className="animate-spin" />
+                <span>Carregando dados...</span>
+              </div>
+            ) : enrollmentsData.length === 0 ? (
+              <div className="flex flex-col items-center justify-center text-center text-xs text-slate-400">
+                <Inbox size={22} className="text-slate-300 mb-1.5" />
+                <p className="font-medium text-slate-600">Sem dados históricos</p>
+                <p className="text-[11px] mt-0.5">As movimentações de alunos aparecerão aqui.</p>
+              </div>
+            ) : (
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={enrollmentsData} margin={{ top: 5, right: 10, left: -20, bottom: 0 }} barCategoryGap="30%">
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                  <XAxis dataKey="month" stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={false} />
+                  <YAxis stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={false} />
+                  <Tooltip content={<CustomChartTooltip />} />
+                  <Bar dataKey="novas" name="Novas" fill="#2563eb" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="cancelamentos" name="Cancelamentos" fill="#f87171" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            )}
+          </div>
+        </motion.div>
+
+        {/* Gráfico 2: Distribuição de Planos */}
+        <motion.div variants={itemVariants} className="lg:col-span-4 p-5 bg-white border border-slate-200/80 rounded-xl shadow-2xs flex flex-col justify-between">
+          <div>
+            <h2 className="text-sm font-semibold text-slate-900">Distribuição por Plano</h2>
+            <p className="text-xs text-slate-500">Proporção dos contratos ativos no sistema</p>
+          </div>
+
+          <div className="my-2 relative flex items-center justify-center h-[160px]">
+            {isLoading ? (
+              <div className="flex items-center gap-2 text-xs text-slate-400">
+                <RefreshCw size={14} className="animate-spin" />
+              </div>
+            ) : totalPlanCount === 0 ? (
+              <div className="flex flex-col items-center justify-center text-center text-xs text-slate-400">
+                <Inbox size={20} className="text-slate-300 mb-1" />
+                <p className="text-[11px]">Nenhum plano ativo</p>
+              </div>
+            ) : (
+              <>
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={planDistribution}
+                      cx="50%" cy="50%"
+                      innerRadius={50} outerRadius={68}
+                      paddingAngle={3} dataKey="value" stroke="none"
+                    >
+                      {planDistribution.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <Tooltip content={<CustomChartTooltip />} />
+                  </PieChart>
+                </ResponsiveContainer>
+                <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                  <span className="text-2xl font-bold font-mono text-slate-900">{totalPlanCount}</span>
+                  <span className="text-[10px] text-slate-400 font-medium uppercase tracking-wider">Ativos</span>
                 </div>
-              );
-            })}
+              </>
+            )}
           </div>
-        </div>
-      </div>
 
-      {/* Retenção + Instrutores */}
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
-        <div className="panel-card animate-fade-slide" style={{ animationDelay: '0.5s' }}>
-          <div className="mb-6">
-            <h3 className="text-base font-semibold text-slate-800">Taxa de Retenção</h3>
-            <p className="text-slate-400 text-[13px] mt-0.5">Evolução mensal em %</p>
+          <div className="space-y-2 pt-3 border-t border-slate-100">
+            {planDistribution.length === 0 ? (
+              <p className="text-[11px] text-slate-400 text-center py-2">Sem registros de plano</p>
+            ) : (
+              planDistribution.map((plan) => {
+                const percentage = totalPlanCount > 0 ? Math.round((plan.value / totalPlanCount) * 100) : 0;
+                return (
+                  <div key={plan.name} className="flex items-center justify-between text-xs">
+                    <div className="flex items-center gap-2">
+                      <span className="w-2 h-2 rounded-full" style={{ backgroundColor: plan.color }} />
+                      <span className="font-medium text-slate-700">{plan.name}</span>
+                    </div>
+                    <div className="flex items-center gap-2 font-mono">
+                      <span className="text-slate-900 font-semibold">{plan.value}</span>
+                      <span className="text-slate-400 text-[11px]">({percentage}%)</span>
+                    </div>
+                  </div>
+                );
+              })
+            )}
           </div>
-          <div className="h-[220px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={retencionData} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
-                <defs>
-                  <linearGradient id="colorRetencao" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%"  stopColor="#10b981" stopOpacity={0.2} />
-                    <stop offset="95%" stopColor="#10b981" stopOpacity={0}   />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                <XAxis dataKey="month" stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={false} />
-                <YAxis stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={false} domain={[85, 100]} tickFormatter={(v) => `${v}%`} />
-                <Tooltip formatter={(value) => [`${value ?? 0}%`, 'Retenção']} />
-                <Area type="monotone" dataKey="retencao" name="Retenção" stroke="#10b981" strokeWidth={2.5} fill="url(#colorRetencao)" activeDot={{ r: 5, fill: '#10b981', stroke: '#fff', strokeWidth: 2 }} />
-              </AreaChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
+        </motion.div>
 
-        <div className="panel-card animate-fade-slide" style={{ animationDelay: '0.55s' }}>
-          <div className="flex items-center justify-between mb-6">
+      </section>
+
+      {/* ── RETENÇÃO & ESTRUTURA DA EQUIPE ── */}
+      <section className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+
+        {/* Curva de Retenção */}
+        <motion.div variants={itemVariants} className="lg:col-span-6 p-5 bg-white border border-slate-200/80 rounded-xl shadow-2xs flex flex-col justify-between">
+          <div className="mb-4">
+            <h2 className="text-sm font-semibold text-slate-900">Evolução da Taxa de Retenção</h2>
+            <p className="text-xs text-slate-500">Histórico de permanência dos alunos (%)</p>
+          </div>
+
+          <div className="h-[200px] w-full relative flex items-center justify-center">
+            {isLoading ? (
+              <div className="flex items-center gap-2 text-xs text-slate-400">
+                <RefreshCw size={14} className="animate-spin" />
+              </div>
+            ) : retentionData.length === 0 ? (
+              <div className="flex flex-col items-center justify-center text-center text-xs text-slate-400">
+                <Inbox size={20} className="text-slate-300 mb-1" />
+                <p className="text-[11px]">Nenhum histórico de retenção</p>
+              </div>
+            ) : (
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={retentionData} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="colorRetencao" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#10b981" stopOpacity={0.15}/>
+                      <stop offset="95%" stopColor="#10b981" stopOpacity={0.0}/>
+                    </linearGradient>
+                  </defs>
+                  <XAxis dataKey="month" stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={false} />
+                  <YAxis stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={false} domain={[0, 100]} tickFormatter={(v) => `${v}%`} />
+                  <Tooltip content={<CustomChartTooltip />} />
+                  <Area type="monotone" dataKey="retencao" name="Retenção (%)" stroke="#10b981" strokeWidth={2} fillOpacity={1} fill="url(#colorRetencao)" />
+                </AreaChart>
+              </ResponsiveContainer>
+            )}
+          </div>
+        </motion.div>
+
+        {/* Desempenho da Equipe */}
+        <motion.div variants={itemVariants} className="lg:col-span-6 p-5 bg-white border border-slate-200/80 rounded-xl shadow-2xs flex flex-col justify-between">
+          <div className="flex items-center justify-between mb-3 border-b border-slate-100 pb-3">
             <div>
-              <h3 className="text-base font-semibold text-slate-800">Top Instrutores</h3>
-              <p className="text-slate-400 text-[13px] mt-0.5">Por volume de aulas no período</p>
+              <h2 className="text-sm font-semibold text-slate-900">Desempenho da Equipe</h2>
+              <p className="text-xs text-slate-500">Ranking por volume de aulas e notas de alunos</p>
             </div>
-            <button type="button" className="flex items-center gap-1.5 text-xs text-blue-600 font-semibold hover:text-blue-700 transition-colors cursor-pointer">
-              <FileText size={13} /> Relatório completo
+            <button
+              type="button"
+              onClick={() => alert('Abrindo relatório da equipe...')}
+              disabled={instructors.length === 0}
+              className="text-xs text-blue-600 font-medium hover:text-blue-700 disabled:opacity-40 disabled:hover:text-blue-600 flex items-center gap-1 cursor-pointer"
+            >
+              <FileText size={13} />
+              <span>Ver completo</span>
             </button>
           </div>
-          <div className="space-y-3">
-            {topInstructors.map((inst, i) => (
-              <div key={inst.name} className="flex items-center gap-4 p-3 rounded-2xl hover:bg-slate-50/70 transition-colors">
-                <div className="w-7 h-7 rounded-full bg-blue-600 text-white text-[10px] font-bold flex items-center justify-center shrink-0">
-                  {i + 1}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-xs font-semibold text-slate-800 truncate">{inst.name}</p>
-                  <p className="text-[11px] text-slate-400 mt-0.5">{inst.aulas} aulas · {inst.alunos} alunos</p>
-                </div>
-                <div className="flex items-center gap-1 text-xs font-semibold text-amber-500">
-                  ★ {inst.nota}
-                </div>
+
+          <div className="space-y-2.5 min-h-[180px]">
+            {isLoading ? (
+              <div className="flex items-center justify-center h-full py-12 text-xs text-slate-400 gap-2">
+                <RefreshCw size={14} className="animate-spin" />
+                <span>Buscando instrutores...</span>
               </div>
-            ))}
+            ) : instructors.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-10 text-center text-xs text-slate-400">
+                <Inbox size={20} className="text-slate-300 mb-1" />
+                <p className="font-medium text-slate-600">Nenhum instrutor avaliado</p>
+                <p className="text-[11px] mt-0.5">Os dados da equipe serão listados aqui.</p>
+              </div>
+            ) : (
+              instructors.map((inst, index) => (
+                <div
+                  key={inst.id}
+                  className="flex items-center justify-between p-2 rounded-lg bg-slate-50/80 border border-slate-100 text-xs"
+                >
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <span className="w-5 h-5 rounded bg-slate-900 text-white font-mono text-[10px] font-bold flex items-center justify-center shrink-0">
+                      {index + 1}
+                    </span>
+                    <div className="min-w-0">
+                      <p className="font-medium text-slate-900 truncate">{inst.name}</p>
+                      <p className="text-[10px] text-slate-400 font-mono">
+                        {inst.classesCount} aulas • {inst.studentsCount} alunos
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-1 font-mono text-amber-600 font-semibold bg-amber-50 px-2 py-0.5 rounded border border-amber-200/60 shrink-0">
+                    <Star size={12} className="fill-amber-500 text-amber-500" />
+                    <span>{inst.rating}</span>
+                  </div>
+                </div>
+              ))
+            )}
           </div>
-        </div>
-      </div>
-    </div>
+        </motion.div>
+
+      </section>
+    </motion.div>
   );
 }

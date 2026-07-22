@@ -1,12 +1,10 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useRef, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import { ROUTES } from '@/constants/routes';
 import {
   Plus,
   Search,
-  Filter,
-  MoreHorizontal,
-  Sparkles,
   Download,
   Eye,
   Edit3,
@@ -16,19 +14,24 @@ import {
   Leaf,
   Flame,
   Beef,
-  Wheat,
   Droplets,
+  MoreVertical,
+  PauseCircle,
+  PlayCircle,
+  X,
+  User,
+  Utensils,
 } from 'lucide-react';
 
-type DietGoal = 'Emagrecimento' | 'Hipertrofia' | 'Manutenção' | 'Saúde';
-type DietStatus = 'Ativa' | 'Pausada' | 'Concluída';
+/* ── Tipagens ── */
+export type DietGoal = 'Emagrecimento' | 'Hipertrofia' | 'Manutenção' | 'Saúde';
+export type DietStatus = 'Ativa' | 'Pausada' | 'Concluída';
 
-interface DietPlan {
+export interface DietPlan {
   id: number;
   name: string;
   student: string;
   studentAvatar: string;
-  color: string;
   goal: DietGoal;
   status: DietStatus;
   calories: number;
@@ -40,63 +43,81 @@ interface DietPlan {
   adherence: number;
 }
 
+/* ── Base Zerada para Produção ── */
+const INITIAL_DIETS: DietPlan[] = [];
+
+/* ── Configurações de Status e Objetivos ── */
 const goalConfig: Record<DietGoal, { style: string; icon: React.ElementType }> = {
-  Emagrecimento: { style: 'bg-rose-50 text-rose-700 border-rose-200/60',       icon: Flame },
-  Hipertrofia:   { style: 'bg-blue-50 text-blue-700 border-blue-200/60',        icon: Beef },
-  Manutenção:    { style: 'bg-emerald-50 text-emerald-700 border-emerald-200/60', icon: Leaf },
-  Saúde:         { style: 'bg-purple-50 text-purple-700 border-purple-200/60',   icon: Droplets },
+  Emagrecimento: { style: 'bg-rose-50 text-rose-700 border-rose-200/60', icon: Flame },
+  Hipertrofia: { style: 'bg-blue-50 text-blue-700 border-blue-200/60', icon: Beef },
+  Manutenção: { style: 'bg-emerald-50 text-emerald-700 border-emerald-200/60', icon: Leaf },
+  Saúde: { style: 'bg-purple-50 text-purple-700 border-purple-200/60', icon: Droplets },
 };
 
-const statusBadge: Record<DietStatus, { style: string; dot: string }> = {
-  Ativa:     { style: 'bg-emerald-50 text-emerald-700 border-emerald-200/60', dot: 'bg-emerald-500 animate-pulse' },
-  Pausada:   { style: 'bg-amber-50 text-amber-700 border-amber-200/60',       dot: 'bg-amber-500' },
-  Concluída: { style: 'bg-slate-100 text-slate-500 border-slate-200',          dot: 'bg-slate-400' },
+const statusConfig: Record<DietStatus, { label: string; style: string; dot: string }> = {
+  Ativa: { label: 'Ativa', style: 'bg-emerald-50 text-emerald-700 border-emerald-200/80', dot: 'bg-emerald-600' },
+  Pausada: { label: 'Pausada', style: 'bg-amber-50 text-amber-700 border-amber-200/80', dot: 'bg-amber-600' },
+  Concluída: { label: 'Concluída', style: 'bg-slate-100 text-slate-600 border-slate-200/80', dot: 'bg-slate-400' },
 };
 
-const mockDiets: DietPlan[] = [
-  { id: 1,  name: 'Plano Low Carb Intensivo', student: 'Ana Souza',       studentAvatar: 'AS', color: '#3b82f6', goal: 'Emagrecimento', status: 'Ativa',     calories: 1600, protein: 140, carbs: 80,  fat: 60,  startDate: '01 Jul 2026', nutritionist: 'Dra. Renata',   adherence: 88 },
-  { id: 2,  name: 'Plano Hipertrofia Fase 2',  student: 'Bruno Lima',      studentAvatar: 'BL', color: '#8b5cf6', goal: 'Hipertrofia',   status: 'Ativa',     calories: 3200, protein: 200, carbs: 350, fat: 80,  startDate: '10 Jun 2026', nutritionist: 'Dr. Felipe',    adherence: 92 },
-  { id: 3,  name: 'Dieta Mediterrânea',        student: 'Carla Mendes',    studentAvatar: 'CM', color: '#10b981', goal: 'Saúde',         status: 'Ativa',     calories: 2100, protein: 100, carbs: 240, fat: 75,  startDate: '15 Mai 2026', nutritionist: 'Dra. Renata',   adherence: 95 },
-  { id: 4,  name: 'Cutting Avançado',          student: 'Diego Rocha',     studentAvatar: 'DR', color: '#f59e0b', goal: 'Emagrecimento', status: 'Pausada',   calories: 1800, protein: 160, carbs: 120, fat: 55,  startDate: '20 Jun 2026', nutritionist: 'Dr. Felipe',    adherence: 71 },
-  { id: 5,  name: 'Manutenção Pós-Dieta',      student: 'Elisa Ferreira',  studentAvatar: 'EF', color: '#ef4444', goal: 'Manutenção',    status: 'Ativa',     calories: 2000, protein: 120, carbs: 200, fat: 70,  startDate: '01 Jun 2026', nutritionist: 'Dra. Renata',   adherence: 84 },
-  { id: 6,  name: 'Plano Vegetariano Fit',     student: 'Felipe Santos',   studentAvatar: 'FS', color: '#06b6d4', goal: 'Saúde',         status: 'Concluída', calories: 1900, protein: 90,  carbs: 220, fat: 65,  startDate: '01 Abr 2026', nutritionist: 'Dra. Carla',    adherence: 98 },
-  { id: 7,  name: 'Bulk Limpo 3000kcal',       student: 'Gabriela Costa',  studentAvatar: 'GC', color: '#ec4899', goal: 'Hipertrofia',   status: 'Ativa',     calories: 3000, protein: 180, carbs: 320, fat: 90,  startDate: '05 Jul 2026', nutritionist: 'Dr. Felipe',    adherence: 79 },
-  { id: 8,  name: 'Protocolo Cetogênico',      student: 'Henrique Alves',  studentAvatar: 'HA', color: '#2563eb', goal: 'Emagrecimento', status: 'Ativa',     calories: 1700, protein: 150, carbs: 40,  fat: 110, startDate: '20 Jun 2026', nutritionist: 'Dr. Miguel',    adherence: 68 },
-];
-
-interface MacroBarProps {
-  label: string;
-  value: number;
-  max: number;
-  color: string;
-  unit?: string;
-}
-
-function MacroBar({ label, value, max, color, unit = 'g' }: MacroBarProps) {
+/* ── Componente da Barra de Macronutrientes ── */
+function MacroBar({ label, value, max, color }: { label: string; value: number; max: number; color: string }) {
   const pct = Math.min((value / max) * 100, 100);
   return (
     <div className="space-y-1">
       <div className="flex justify-between text-[11px]">
         <span className="text-slate-500 font-medium">{label}</span>
-        <span className="text-slate-700 font-semibold">{value}{unit}</span>
+        <span className="font-mono font-semibold text-slate-900">{value}g</span>
       </div>
       <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
-        <div className="h-full rounded-full transition-all duration-500" style={{ width: `${pct}%`, backgroundColor: color }} />
+        <div
+          className="h-full rounded-full transition-all duration-300"
+          style={{ width: `${pct}%`, backgroundColor: color }}
+        />
       </div>
     </div>
   );
 }
 
+/* ── Animações Framer Motion ── */
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: { staggerChildren: 0.04 },
+  },
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 8 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.2 } },
+};
+
 export default function Dietas() {
-  const [search, setSearch]       = useState('');
-  const [filterGoal, setFilterGoal]     = useState('Todos');
+  const [diets, setDiets] = useState<DietPlan[]>(INITIAL_DIETS);
+  const [search, setSearch] = useState('');
+  const [filterGoal, setFilterGoal] = useState('Todos');
   const [filterStatus, setFilterStatus] = useState('Todos');
-  const [menuOpen, setMenuOpen]   = useState<number | null>(null);
-  const [currentPage, setCurrentPage]   = useState(1);
+  const [menuOpen, setMenuOpen] = useState<number | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 6;
+
   const location = useLocation();
   const navigate = useNavigate();
+  const menuRef = useRef<HTMLDivElement | null>(null);
 
+  /* Fechar menu de ações ao clicar fora */
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setMenuOpen(null);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  /* Sincronizar filtro de status da URL */
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const status = params.get('status') ?? 'Todos';
@@ -106,219 +127,458 @@ export default function Dietas() {
     }
   }, [location.search]);
 
-  const filtered = useMemo(() => {
-    return mockDiets.filter((d) => {
-      const q = search.toLowerCase();
-      const matchSearch  = d.name.toLowerCase().includes(q) || d.student.toLowerCase().includes(q) || d.nutritionist.toLowerCase().includes(q);
-      const matchGoal    = filterGoal === 'Todos'   || d.goal   === filterGoal;
-      const matchStatus  = filterStatus === 'Todos' || d.status === filterStatus;
+  /* ── Métricas Calculadas ── */
+  const counts = useMemo(() => {
+    const total = diets.length;
+    const ativas = diets.filter((d) => d.status === 'Ativa').length;
+    const pausadas = diets.filter((d) => d.status === 'Pausada').length;
+    const concluidas = diets.filter((d) => d.status === 'Concluída').length;
+
+    const activeDiets = diets.filter((d) => d.status === 'Ativa');
+    const avgAdherence = activeDiets.length
+      ? Math.round(activeDiets.reduce((acc, curr) => acc + curr.adherence, 0) / activeDiets.length)
+      : 0;
+
+    return { total, ativas, pausadas, concluidas, avgAdherence };
+  }, [diets]);
+
+  /* ── Filtros e Paginação ── */
+  const filteredDiets = useMemo(() => {
+    return diets.filter((d) => {
+      const q = search.toLowerCase().trim();
+      const matchSearch =
+        !q ||
+        d.name.toLowerCase().includes(q) ||
+        d.student.toLowerCase().includes(q) ||
+        d.nutritionist.toLowerCase().includes(q);
+
+      const matchGoal = filterGoal === 'Todos' || d.goal === filterGoal;
+      const matchStatus = filterStatus === 'Todos' || d.status === filterStatus;
+
       return matchSearch && matchGoal && matchStatus;
     });
-  }, [search, filterGoal, filterStatus]);
+  }, [diets, search, filterGoal, filterStatus]);
 
-  const totalPages = Math.max(1, Math.ceil(filtered.length / itemsPerPage));
-  const paginated  = filtered.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+  const totalPages = Math.max(1, Math.ceil(filteredDiets.length / itemsPerPage));
+  const paginated = filteredDiets.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
-  const counts = {
-    total:     mockDiets.length,
-    ativas:    mockDiets.filter((d) => d.status === 'Ativa').length,
-    pausadas:  mockDiets.filter((d) => d.status === 'Pausada').length,
-    concluidas: mockDiets.filter((d) => d.status === 'Concluída').length,
+  const handleToggleStatus = (id: number) => {
+    setDiets((prev) =>
+      prev.map((d) => {
+        if (d.id === id) {
+          const nextStatus: DietStatus = d.status === 'Ativa' ? 'Pausada' : 'Ativa';
+          return { ...d, status: nextStatus };
+        }
+        return d;
+      })
+    );
+    setMenuOpen(null);
   };
 
-  const avgAdherence = Math.round(mockDiets.filter((d) => d.status === 'Ativa').reduce((s, d) => s + d.adherence, 0) / counts.ativas);
+  const handleClearFilters = () => {
+    setSearch('');
+    setFilterGoal('Todos');
+    setFilterStatus('Todos');
+    setCurrentPage(1);
+    navigate(ROUTES.dietas, { replace: true });
+  };
 
   return (
-    <div className="space-y-6 text-slate-800">
-
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+    <motion.div
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+      className="space-y-6 max-w-[1600px] mx-auto pb-8"
+    >
+      {/* ── HEADER SUPERIOR ── */}
+      <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200/80 pb-4">
         <div>
-          <div className="flex items-center gap-2 animate-fade-slide">
-            <h1 className="text-2xl font-semibold text-slate-800 tracking-tight">Planos Alimentares</h1>
-            <span className="page-tag">
-              <Sparkles className="w-3 h-3 text-blue-500" /> {counts.ativas} ativos
+          <div className="flex items-center gap-2">
+            <h1 className="text-xl font-semibold text-slate-900 tracking-tight">Planos Alimentares</h1>
+            <span className="text-[11px] font-mono font-medium px-2 py-0.5 bg-slate-100 text-slate-600 rounded-md border border-slate-200">
+              {counts.ativas} Planos Ativos
             </span>
           </div>
-          <p className="text-sm text-slate-500 mt-1 animate-fade-slide delay-100">
-            Gerencie dietas, metas nutricionais e adesão dos alunos
+          <p className="text-xs text-slate-500 mt-0.5">
+            Gestão de dietas, metas nutricionais, macronutrientes e acompanhamento de adesão.
           </p>
         </div>
-        <div className="flex items-center gap-3 animate-fade-slide delay-200">
-          <button type="button" className="btn-outline" onClick={() => alert('Exportando planos...')}>
-            <Download className="w-4 h-4 text-slate-500" />
-            <span className="hidden sm:inline">Exportar</span>
+
+        <div className="flex items-center gap-2.5">
+          <button
+            type="button"
+            onClick={() => alert('Exportando relatórios de dietas...')}
+            disabled={diets.length === 0}
+            className="hidden sm:inline-flex items-center gap-2 px-3 py-1.5 text-xs font-medium text-slate-700 bg-white border border-slate-200/90 rounded-lg hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-2xs cursor-pointer"
+          >
+            <Download size={14} className="text-slate-400" />
+            <span>Exportar PDF</span>
           </button>
-          <button type="button" className="btn-primary" onClick={() => alert('Novo plano alimentar')}>
-            <Plus className="w-4 h-4" />
+
+          <button
+            type="button"
+            onClick={() => alert('Abrindo formulário de novo plano alimentar...')}
+            className="inline-flex items-center gap-2 px-3.5 py-1.5 text-xs font-medium text-white bg-slate-900 rounded-lg hover:bg-slate-800 transition-colors shadow-2xs cursor-pointer"
+          >
+            <Plus size={14} />
             <span>Novo Plano</span>
           </button>
         </div>
-      </div>
+      </header>
 
-      {/* KPI Cards */}
-      <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
-        {[
-          { label: 'Planos Ativos',    value: counts.ativas,      icon: Leaf,     color: 'text-emerald-500', bg: 'bg-emerald-50/50' },
-          { label: 'Pausados',         value: counts.pausadas,     icon: Flame,    color: 'text-amber-500',   bg: 'bg-amber-50/50' },
-          { label: 'Concluídos',       value: counts.concluidas,   icon: Wheat,    color: 'text-slate-500',   bg: 'bg-slate-100' },
-          { label: 'Adesão Média',     value: `${avgAdherence}%`,  icon: Beef,     color: 'text-blue-500',    bg: 'bg-blue-50/50' },
-        ].map((stat, i) => (
-          <div key={i} className="panel-card-sm animate-card-enter flex items-center justify-between" style={{ animationDelay: `${i * 0.07}s` }}>
-            <div>
-              <p className="text-[11px] font-medium text-slate-400 uppercase tracking-wider">{stat.label}</p>
-              <p className="text-2xl font-bold text-slate-800 mt-1">{stat.value}</p>
-            </div>
-            <div className={`w-10 h-10 rounded-2xl flex items-center justify-center ${stat.bg} ${stat.color}`}>
-              <stat.icon size={18} />
-            </div>
+      {/* ── KPIs DE RESUMO ── */}
+      <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+        
+        {/* KPI 1: Ativos */}
+        <motion.div variants={itemVariants} className="p-4 bg-white border border-slate-200/80 rounded-xl shadow-2xs">
+          <div className="flex justify-between items-start text-xs text-slate-500 font-medium">
+            <span>Planos em Vigência</span>
+            <Leaf size={16} className="text-emerald-600" />
           </div>
-        ))}
-      </div>
+          <div className="mt-2 text-2xl font-bold font-mono text-slate-900 tracking-tight">{counts.ativas}</div>
+          <p className="mt-3 text-[11px] text-slate-500 truncate">Prescrições ativas da base</p>
+        </motion.div>
 
-      {/* Main Card */}
-      <div className="bg-white border border-slate-100/80 shadow-[0_4px_24px_rgba(0,0,0,0.02)] overflow-hidden animate-fade-slide" style={{ borderRadius: 24, animationDelay: '0.3s' }}>
+        {/* KPI 2: Pausados */}
+        <motion.div variants={itemVariants} className="p-4 bg-white border border-slate-200/80 rounded-xl shadow-2xs">
+          <div className="flex justify-between items-start text-xs text-slate-500 font-medium">
+            <span>Aguardando / Pausados</span>
+            <Flame size={16} className="text-amber-500" />
+          </div>
+          <div className="mt-2 text-2xl font-bold font-mono text-slate-900 tracking-tight">{counts.pausadas}</div>
+          <p className="mt-3 text-[11px] text-slate-500 truncate">Planos temporariamente suspensos</p>
+        </motion.div>
 
-        {/* Toolbar */}
-        <div className="p-5 border-b border-slate-100 bg-white/50 flex flex-col md:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-3 w-full md:w-auto">
-            <div className="tab-bar">
-              {(['Todos', 'Ativa', 'Pausada', 'Concluída'] as const).map((s) => (
-                <button key={s} type="button" onClick={() => {
-                  setFilterStatus(s); setCurrentPage(1);
-                  if (s === 'Todos') {
-                    navigate(ROUTES.dietas, { replace: true });
-                  } else {
-                    navigate(`${ROUTES.dietas}?status=${encodeURIComponent(s)}`, { replace: true });
-                  }
-                }}
-                  className={`tab-item ${filterStatus === s ? 'tab-item-active' : ''}`}>{s}
+        {/* KPI 3: Concluídos */}
+        <motion.div variants={itemVariants} className="p-4 bg-white border border-slate-200/80 rounded-xl shadow-2xs">
+          <div className="flex justify-between items-start text-xs text-slate-500 font-medium">
+            <span>Ciclos Concluídos</span>
+            <Utensils size={16} className="text-slate-400" />
+          </div>
+          <div className="mt-2 text-2xl font-bold font-mono text-slate-900 tracking-tight">{counts.concluidas}</div>
+          <p className="mt-3 text-[11px] text-slate-500 truncate">Estratégias nutricionais finalizadas</p>
+        </motion.div>
+
+        {/* KPI 4: Adesão Média */}
+        <motion.div variants={itemVariants} className="p-4 bg-white border border-slate-200/80 rounded-xl shadow-2xs">
+          <div className="flex justify-between items-start text-xs text-slate-500 font-medium">
+            <span>Adesão Média Nutricional</span>
+            <Beef size={16} className="text-blue-600" />
+          </div>
+          <div className="mt-2 flex items-baseline gap-1">
+            <span className="text-2xl font-bold font-mono text-slate-900 tracking-tight">
+              {counts.avgAdherence > 0 ? `${counts.avgAdherence}%` : '—'}
+            </span>
+          </div>
+          <div className="mt-3 w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
+            <div className="bg-blue-600 h-full rounded-full" style={{ width: `${counts.avgAdherence}%` }} />
+          </div>
+        </motion.div>
+
+      </section>
+
+      {/* ── PAINEL PRINCIPAL & FILTROS ── */}
+      <motion.section variants={itemVariants} className="bg-white border border-slate-200/80 rounded-xl shadow-2xs overflow-hidden flex flex-col">
+        
+        {/* Toolbar de Pesquisa e Abas */}
+        <div className="p-4 border-b border-slate-100 flex flex-col lg:flex-row lg:items-center justify-between gap-3 bg-slate-50/50">
+          
+          {/* Abas por Status */}
+          <div className="flex bg-slate-200/60 p-0.5 rounded-lg text-xs font-medium self-start lg:self-auto">
+            {(['Todos', 'Ativa', 'Pausada', 'Concluída'] as const).map((s) => {
+              const countVal =
+                s === 'Todos'
+                  ? counts.total
+                  : s === 'Ativa'
+                  ? counts.ativas
+                  : s === 'Pausada'
+                  ? counts.pausadas
+                  : counts.concluidas;
+
+              return (
+                <button
+                  key={s}
+                  type="button"
+                  onClick={() => {
+                    setFilterStatus(s);
+                    setCurrentPage(1);
+                    if (s === 'Todos') {
+                      navigate(ROUTES.dietas, { replace: true });
+                    } else {
+                      navigate(`${ROUTES.dietas}?status=${encodeURIComponent(s)}`, { replace: true });
+                    }
+                  }}
+                  className={`flex items-center gap-1.5 px-3 py-1 rounded-md transition-all cursor-pointer ${
+                    filterStatus === s
+                      ? 'bg-white text-slate-900 shadow-2xs font-semibold'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  <span>{s}</span>
+                  <span className="text-[10px] font-mono px-1.5 py-0.2 bg-slate-100 text-slate-500 rounded border border-slate-200/60">
+                    {countVal}
+                  </span>
                 </button>
-              ))}
-            </div>
+              );
+            })}
           </div>
-          <div className="flex items-center gap-3 w-full md:w-auto">
-            <div className="relative flex-1 md:w-60">
-              <Search size={14} className="absolute left-3 top-2.5 text-slate-400" />
-              <input type="text" value={search} onChange={(e) => { setSearch(e.target.value); setCurrentPage(1); }}
-                placeholder="Buscar aluno ou plano..." className="input-field pl-8 py-1.5 pr-3" />
+
+          {/* Campo de Busca e Filtro de Objetivo */}
+          <div className="flex items-center gap-2 flex-wrap">
+            <div className="relative flex-1 sm:w-60">
+              <Search size={13} className="absolute left-2.5 top-2.5 text-slate-400" />
+              <input
+                type="text"
+                value={search}
+                onChange={(e) => {
+                  setSearch(e.target.value);
+                  setCurrentPage(1);
+                }}
+                placeholder="Buscar aluno, plano ou nutricionista..."
+                className="w-full bg-white border border-slate-200/80 pl-8 pr-7 py-1 rounded-lg text-xs text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-slate-400"
+              />
+              {search && (
+                <button
+                  type="button"
+                  onClick={() => setSearch('')}
+                  className="absolute right-2 top-2 text-slate-400 hover:text-slate-600"
+                >
+                  <X size={12} />
+                </button>
+              )}
             </div>
+
             <div className="relative">
-              <select value={filterGoal} onChange={(e) => { setFilterGoal(e.target.value); setCurrentPage(1); }}
-                className="input-field pl-3 pr-7 py-1.5 appearance-none cursor-pointer">
+              <select
+                value={filterGoal}
+                onChange={(e) => {
+                  setFilterGoal(e.target.value);
+                  setCurrentPage(1);
+                }}
+                className="bg-white border border-slate-200/80 px-2.5 py-1 rounded-lg text-xs font-medium text-slate-600 focus:outline-none cursor-pointer"
+              >
                 <option value="Todos">Todos os Objetivos</option>
                 <option value="Emagrecimento">Emagrecimento</option>
                 <option value="Hipertrofia">Hipertrofia</option>
                 <option value="Manutenção">Manutenção</option>
                 <option value="Saúde">Saúde</option>
               </select>
-              <Filter size={12} className="absolute right-3 top-3 text-slate-400 pointer-events-none" />
             </div>
           </div>
+
         </div>
 
-        {/* Cards Grid */}
-        <div className="p-5 grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4 min-h-[360px]">
+        {/* Grid de Cards de Dietas */}
+        <div className="p-4 grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-3.5 min-h-[360px] relative">
           {paginated.length === 0 ? (
-            <div className="col-span-full flex flex-col items-center justify-center py-16 text-center">
-              <Leaf size={32} className="text-slate-300 mb-3" />
-              <p className="text-sm font-semibold text-slate-700">Nenhum plano encontrado</p>
-              <p className="text-xs text-slate-400 mt-1">Ajuste os filtros ou crie um novo plano.</p>
+            <div className="col-span-full flex flex-col items-center justify-center py-16 text-center text-xs text-slate-500">
+              <Utensils size={22} className="text-slate-300 mb-2" />
+              <p className="font-medium text-slate-700">
+                {diets.length === 0 ? 'Nenhum plano alimentar cadastrado' : 'Nenhum plano encontrado'}
+              </p>
+              <p className="text-[11px] text-slate-400 mt-0.5 max-w-xs">
+                {diets.length === 0
+                  ? 'Cadastre a primeira prescrição nutricional para um aluno no botão acima.'
+                  : 'Tente ajustar os parâmetros de pesquisa ou selecione outro objetivo.'}
+              </p>
+              {(search || filterGoal !== 'Todos' || filterStatus !== 'Todos') && (
+                <button
+                  type="button"
+                  onClick={handleClearFilters}
+                  className="mt-3 text-xs font-medium text-blue-600 hover:text-blue-700 underline cursor-pointer"
+                >
+                  Limpar todos os filtros
+                </button>
+              )}
             </div>
-          ) : paginated.map((diet, idx) => {
-            const goal   = goalConfig[diet.goal];
-            const status = statusBadge[diet.status];
-            const GoalIcon = goal.icon;
-            return (
-              <div key={diet.id}
-                className="border border-slate-100/90 rounded-2xl p-5 hover:border-slate-200 hover:shadow-sm transition-all duration-200 flex flex-col gap-4 animate-fade-slide"
-                style={{ animationDelay: `${idx * 0.05}s` }}>
+          ) : (
+            paginated.map((diet) => {
+              const goal = goalConfig[diet.goal];
+              const status = statusConfig[diet.status];
+              const GoalIcon = goal.icon;
 
-                {/* Card Header */}
-                <div className="flex items-start justify-between gap-2">
-                  <div className="flex items-center gap-3 min-w-0">
-                    <div className="w-9 h-9 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0" style={{ backgroundColor: diet.color }}>
-                      {diet.studentAvatar}
-                    </div>
-                    <div className="min-w-0">
-                      <p className="text-xs font-bold text-slate-800 truncate">{diet.student}</p>
-                      <p className="text-[11px] text-slate-400 truncate">{diet.name}</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-1 shrink-0 relative">
-                    <span className={`inline-flex items-center gap-1.5 border px-2.5 py-1 text-[10px] font-semibold rounded-full ${status.style}`}>
-                      <span className={`w-1.5 h-1.5 rounded-full ${status.dot}`} />
-                      {diet.status}
-                    </span>
-                    <button type="button" className="btn-icon" onClick={() => setMenuOpen(menuOpen === diet.id ? null : diet.id)}>
-                      <MoreHorizontal size={14} />
-                    </button>
-                    {menuOpen === diet.id && (
-                      <div className="dropdown-menu absolute right-0 top-8 w-40 z-30">
-                        <button type="button" onClick={() => { alert(`Ver plano de ${diet.student}`); setMenuOpen(null); }} className="dropdown-item">
-                          <Eye size={13} className="text-slate-400" /> Ver detalhes
-                        </button>
-                        <button type="button" onClick={() => { alert(`Editar plano`); setMenuOpen(null); }} className="dropdown-item">
-                          <Edit3 size={13} className="text-slate-400" /> Editar
-                        </button>
-                        <div className="my-1 border-t border-slate-100" />
-                        <button type="button" onClick={() => { alert(`Plano excluído`); setMenuOpen(null); }} className="dropdown-item-danger">
-                          <Trash2 size={13} className="text-rose-500" /> Excluir
-                        </button>
+              return (
+                <div
+                  key={diet.id}
+                  className="p-4 bg-white border border-slate-200/80 rounded-xl hover:border-slate-300/90 transition-all shadow-2xs flex flex-col justify-between gap-3 text-xs"
+                >
+                  {/* Topo do Card */}
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <div className="w-8 h-8 rounded-md bg-slate-900 border border-slate-800 flex items-center justify-center text-white text-[10px] font-mono font-semibold shrink-0">
+                        {diet.studentAvatar}
                       </div>
-                    )}
+                      <div className="min-w-0">
+                        <p className="font-semibold text-slate-900 truncate">{diet.student}</p>
+                        <p className="text-[11px] text-slate-500 truncate">{diet.name}</p>
+                      </div>
+                    </div>
+
+                    {/* Status & Menu */}
+                    <div className="flex items-center gap-1 shrink-0 relative">
+                      <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-medium border ${status.style}`}>
+                        <span className={`w-1.5 h-1.5 rounded-full ${status.dot}`} />
+                        {status.label}
+                      </span>
+
+                      <button
+                        type="button"
+                        onClick={() => setMenuOpen(menuOpen === diet.id ? null : diet.id)}
+                        className="p-1 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded transition-colors"
+                      >
+                        <MoreVertical size={15} />
+                      </button>
+
+                      {/* Menu Popover */}
+                      <AnimatePresence>
+                        {menuOpen === diet.id && (
+                          <motion.div
+                            ref={menuRef}
+                            initial={{ opacity: 0, scale: 0.95, y: -4 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.95, y: -4 }}
+                            transition={{ duration: 0.12 }}
+                            className="absolute right-0 top-7 w-44 bg-slate-900 border border-slate-800 rounded-lg shadow-xl p-1 z-30 text-left"
+                          >
+                            <button
+                              type="button"
+                              onClick={() => {
+                                alert(`Ver plano de ${diet.student}`);
+                                setMenuOpen(null);
+                              }}
+                              className="w-full flex items-center gap-2 px-2.5 py-1.5 text-xs text-slate-200 hover:bg-slate-800 rounded transition-colors cursor-pointer"
+                            >
+                              <Eye size={13} className="text-slate-400" />
+                              <span>Ver detalhes</span>
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => {
+                                alert(`Editar plano de ${diet.student}`);
+                                setMenuOpen(null);
+                              }}
+                              className="w-full flex items-center gap-2 px-2.5 py-1.5 text-xs text-slate-200 hover:bg-slate-800 rounded transition-colors cursor-pointer"
+                            >
+                              <Edit3 size={13} className="text-slate-400" />
+                              <span>Editar plano</span>
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => handleToggleStatus(diet.id)}
+                              className="w-full flex items-center gap-2 px-2.5 py-1.5 text-xs text-slate-200 hover:bg-slate-800 rounded transition-colors cursor-pointer"
+                            >
+                              {diet.status === 'Ativa' ? (
+                                <>
+                                  <PauseCircle size={13} className="text-amber-400" />
+                                  <span>Pausar plano</span>
+                                </>
+                              ) : (
+                                <>
+                                  <PlayCircle size={13} className="text-emerald-400" />
+                                  <span>Reativar plano</span>
+                                </>
+                              )}
+                            </button>
+
+                            <div className="my-1 border-t border-slate-800" />
+
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setDiets((prev) => prev.filter((d) => d.id !== diet.id));
+                                setMenuOpen(null);
+                              }}
+                              className="w-full flex items-center gap-2 px-2.5 py-1.5 text-xs text-rose-400 hover:bg-rose-500/10 rounded transition-colors cursor-pointer"
+                            >
+                              <Trash2 size={13} />
+                              <span>Excluir</span>
+                            </button>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </div>
+                  </div>
+
+                  {/* Objetivo & Total Calorias */}
+                  <div className="flex items-center justify-between py-1 border-y border-slate-100">
+                    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-medium border ${goal.style}`}>
+                      <GoalIcon size={12} />
+                      {diet.goal}
+                    </span>
+                    <div className="flex items-center gap-1 font-mono text-slate-900 font-semibold">
+                      <Flame size={13} className="text-amber-500" />
+                      <span>{diet.calories.toLocaleString('pt-BR')}</span>
+                      <span className="text-[10px] font-normal text-slate-400">kcal/dia</span>
+                    </div>
+                  </div>
+
+                  {/* Barras de Macronutrientes */}
+                  <div className="space-y-2 pt-1">
+                    <MacroBar label="Proteínas" value={diet.protein} max={250} color="#2563eb" />
+                    <MacroBar label="Carboidratos" value={diet.carbs} max={400} color="#d97706" />
+                    <MacroBar label="Gorduras" value={diet.fat} max={150} color="#e11d48" />
+                  </div>
+
+                  {/* Rodapé do Card */}
+                  <div className="flex items-center justify-between pt-2 border-t border-slate-100 text-[11px] text-slate-500">
+                    <span className="font-mono">
+                      Adesão:{' '}
+                      <strong
+                        className={
+                          diet.adherence >= 85
+                            ? 'text-emerald-600'
+                            : diet.adherence >= 70
+                            ? 'text-amber-600'
+                            : 'text-rose-600'
+                        }
+                      >
+                        {diet.adherence}%
+                      </strong>
+                    </span>
+                    <span className="flex items-center gap-1 truncate">
+                      <User size={11} className="text-slate-400" />
+                      <span>{diet.nutritionist}</span>
+                    </span>
                   </div>
                 </div>
-
-                {/* Goal Badge + Calorias */}
-                <div className="flex items-center justify-between">
-                  <span className={`inline-flex items-center gap-1.5 border px-2.5 py-1 text-[11px] font-semibold rounded-lg ${goal.style}`}>
-                    <GoalIcon size={11} />
-                    {diet.goal}
-                  </span>
-                  <div className="flex items-center gap-1 text-slate-700">
-                    <Flame size={13} className="text-orange-400" />
-                    <span className="text-xs font-bold">{diet.calories.toLocaleString('pt-BR')}</span>
-                    <span className="text-[11px] text-slate-400">kcal/dia</span>
-                  </div>
-                </div>
-
-                {/* Macros */}
-                <div className="space-y-2.5">
-                  <MacroBar label="Proteína" value={diet.protein} max={250} color="#3b82f6" />
-                  <MacroBar label="Carboidratos" value={diet.carbs}   max={400} color="#f59e0b" />
-                  <MacroBar label="Gorduras"     value={diet.fat}     max={150} color="#f43f5e" />
-                </div>
-
-                {/* Footer */}
-                <div className="flex items-center justify-between pt-3 border-t border-slate-100 text-[11px]">
-                  <span className="text-slate-400">Adesão: <span className={`font-bold ${diet.adherence >= 85 ? 'text-emerald-600' : diet.adherence >= 70 ? 'text-amber-600' : 'text-rose-600'}`}>{diet.adherence}%</span></span>
-                  <span className="text-slate-400">{diet.nutritionist}</span>
-                </div>
-              </div>
-            );
-          })}
+              );
+            })
+          )}
         </div>
 
-        {/* Pagination */}
-        <div className="flex flex-col sm:flex-row items-center justify-between px-6 py-4 border-t border-slate-100 bg-slate-50/50 gap-3">
-          <p className="text-xs text-slate-500">
-            Mostrando <span className="font-semibold text-slate-700">{paginated.length}</span> de{' '}
-            <span className="font-semibold text-slate-700">{filtered.length}</span> planos
+        {/* Rodapé e Paginação */}
+        <div className="p-3 border-t border-slate-100 bg-slate-50/50 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500">
+          <p>
+            Exibindo <span className="font-mono font-semibold text-slate-800">{paginated.length}</span> de{' '}
+            <span className="font-mono font-semibold text-slate-800">{filteredDiets.length}</span> planos
           </p>
+
           <div className="flex items-center gap-2">
-            <button type="button" onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))} disabled={currentPage === 1}
-              className="btn-icon border border-slate-200/80 bg-white disabled:opacity-40 disabled:cursor-not-allowed">
-              <ChevronLeft size={16} />
+            <button
+              type="button"
+              onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
+              disabled={currentPage === 1}
+              className="p-1.5 rounded-lg border border-slate-200/80 bg-white text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:hover:bg-white shadow-2xs transition-colors cursor-pointer"
+            >
+              <ChevronLeft size={14} />
             </button>
-            <span className="text-xs font-semibold text-slate-700 px-2">Página {currentPage} de {totalPages}</span>
-            <button type="button" onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))} disabled={currentPage === totalPages}
-              className="btn-icon border border-slate-200/80 bg-white disabled:opacity-40 disabled:cursor-not-allowed">
-              <ChevronRight size={16} />
+            <span className="text-[11px] font-mono font-medium text-slate-700 px-2">
+              Página {currentPage} de {totalPages}
+            </span>
+            <button
+              type="button"
+              onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
+              disabled={currentPage === totalPages}
+              className="p-1.5 rounded-lg border border-slate-200/80 bg-white text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:hover:bg-white shadow-2xs transition-colors cursor-pointer"
+            >
+              <ChevronRight size={14} />
             </button>
           </div>
         </div>
-      </div>
-    </div>
+
+      </motion.section>
+    </motion.div>
   );
 }

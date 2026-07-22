@@ -12,4 +12,5 @@ export const ROUTES = {
   perfil: '/perfil',
   configuracoes: '/configuracoes',
   ajuda: '/help',
+  planos: '/planos',
 } as const;

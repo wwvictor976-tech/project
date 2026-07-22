@@ -1,24 +1,25 @@
 @import 'tailwindcss';
 
-/* Design tokens (CSS custom properties) - used by Tailwind config */
+/* Design Tokens Enterprise - Sistema de Design Atlhon */
 :root {
-  --color-primary: 37 99 235;       /* #2563eb */
-  --color-secondary: 124 58 237;    /* #7c3aed */
-  --color-accent: 96 165 250;       /* #60a5fa */
-  --color-background: 3 7 18;       /* dark page background */
-  --color-surface: 255 255 255;     /* card / surface */
-  --color-text: 2 6 23;             /* text on surface */
-  --color-muted: 148 163 184;       /* subtle text / borders */
-  --color-border: 226 232 240;      /* border tone */
-  --color-error: 239 68 68;         /* red */
-  --color-success: 16 185 129;      /* green */
+  --color-primary: 37 99 235;        /* Azul corporativo #2563eb */
+  --color-primary-dark: 29 78 216;   /* #1d4ed8 */
+  --color-secondary: 15 23 42;       /* Slate 900 */
+  --color-background: 248 250 252;   /* Slate 50 */
+  --color-surface: 255 255 255;      /* White */
+  --color-text: 15 23 42;            /* Slate 900 */
+  --color-muted: 100 116 139;        /* Slate 500 */
+  --color-border: 226 232 240;       /* Slate 200 */
+  --color-error: 225 29 72;          /* Rose 600 */
+  --color-success: 16 185 129;       /* Emerald 500 */
+  --color-warning: 217 119 6;        /* Amber 600 */
 
   --radius-sm: 6px;
-  --radius-md: 12px;
-  --radius-lg: 16px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
 }
 
-/* Resets globais e comportamento adaptável de renderização */
+/* Reset e comportamento global de renderização */
 html, body {
   margin: 0;
   min-height: 100vh;
@@ -28,6 +29,7 @@ html, body {
   -moz-osx-font-smoothing: grayscale;
   color: rgb(var(--color-text));
   scroll-behavior: smooth;
+  font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
 }
 
 main,
@@ -36,16 +38,17 @@ main,
   scroll-behavior: smooth;
 }
 
-/* Tratamento de Acessibilidade unificado para navegação via teclado */
+/* Acessibilidade e navegação por teclado */
 a:focus-visible,
 button:focus-visible,
-input:focus-visible {
+input:focus-visible,
+select:focus-visible {
   outline: 2px solid rgb(var(--color-primary)) !important;
-  outline-offset: 2px !important;
-  border-radius: var(--radius-sm) !important;
+  outline-offset: 1px !important;
+  border-radius: var(--radius-md) !important;
 }
 
-/* Prevenção de quebra visual causada pelo Autocomplete do Chrome/Safari */
+/* Autocomplete limpo nos navegadores */
 input:-webkit-autofill,
 input:-webkit-autofill:hover,
 input:-webkit-autofill:focus {

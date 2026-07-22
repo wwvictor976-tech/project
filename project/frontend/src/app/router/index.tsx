@@ -18,6 +18,7 @@ const Perfil = lazy(() => import('@/features/perfil/pages/Perfi'));
 const Configuracoes = lazy(() => import('@/features/configuracoes/pages/configuracoes'));
 const Help = lazy(() => import('@/features/help/pages/Help'));
 const Treinos = lazy(() => import('@/features/treinos/pages/Treinos'));
+const Planos = lazy(() => import('@/features/planos/pages/Planos'));
 
 export const router = createBrowserRouter([
   {
@@ -50,6 +51,7 @@ export const router = createBrowserRouter([
           { path: ROUTES.relatorios,   element: (<Suspense fallback={<FullPageLoader />}><Relatorios /></Suspense>) },
           { path: ROUTES.dietas,       element: (<Suspense fallback={<FullPageLoader />}><Dietas /></Suspense>) },
           { path: ROUTES.treinos,      element: (<Suspense fallback={<FullPageLoader />}><Treinos /></Suspense>) },
+          { path: ROUTES.planos,       element: (<Suspense fallback={<FullPageLoader />}><Planos /></Suspense>) },
           { path: ROUTES.perfil,       element: (<Suspense fallback={<FullPageLoader />}><Perfil /></Suspense>) },
           { path: ROUTES.configuracoes, element: (<Suspense fallback={<FullPageLoader />}><Configuracoes /></Suspense>) },
           { path: ROUTES.ajuda,        element: (<Suspense fallback={<FullPageLoader />}><Help /></Suspense>) },

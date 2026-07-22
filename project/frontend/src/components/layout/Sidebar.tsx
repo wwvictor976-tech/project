@@ -12,6 +12,7 @@ import {
   User,
   HelpCircle,
   LogOut,
+  Sparkles,
   PanelLeftClose,
   PanelLeftOpen,
   Search,
@@ -24,32 +25,24 @@ import { useAuth } from '@/app/auth';
 import { useAppStore } from '@/stores/useAppStore';
 import { ROUTES } from '@/constants/routes';
 
-/* ── Estilos da Scrollbar Premium para a Sidebar Dark ── */
+/* ── Custom Scrollbar ── */
 const SIDEBAR_SCROLLBAR_CSS = `
   .sidebar-scrollbar {
     scrollbar-width: thin;
     scrollbar-color: rgba(255, 255, 255, 0.12) transparent;
   }
-
   .sidebar-scrollbar::-webkit-scrollbar {
     width: 4px;
   }
-
   .sidebar-scrollbar::-webkit-scrollbar-track {
     background: transparent;
   }
-
   .sidebar-scrollbar::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.12);
     border-radius: 9999px;
   }
-
   .sidebar-scrollbar:hover::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.2);
-  }
-
-  .sidebar-scrollbar::-webkit-scrollbar-thumb:hover {
-    background: rgba(59, 130, 246, 0.6) !important; /* Azul Atlhon no hover */
+    background: rgba(59, 130, 246, 0.5);
   }
 `;
 
@@ -71,7 +64,6 @@ interface NavSection {
   items: NavItem[];
 }
 
-/* ── Mapeamento Organizado por Tópicos / Módulos ── */
 const NAV_SECTIONS: NavSection[] = [
   {
     title: 'Visão Geral',
@@ -130,6 +122,7 @@ const NAV_SECTIONS: NavSection[] = [
   {
     title: 'Sistema',
     items: [
+      { label: 'Planos', path: ROUTES.planos, icon: Sparkles },
       { label: 'Perfil', path: ROUTES.perfil, icon: User },
       { label: 'Configurações', path: ROUTES.configuracoes, icon: Settings },
       { label: 'Ajuda & Suporte', path: ROUTES.ajuda, icon: HelpCircle },
@@ -141,11 +134,10 @@ export function Sidebar() {
   const location = useLocation();
   const { logout } = useAuth();
 
-  const store = useAppStore() as any;
-  const sidebarOpen = store?.sidebarOpen ?? false;
-  const setSidebarOpen = store?.setSidebarOpen ?? (() => {});
-  const sidebarCollapsed = store?.sidebarCollapsed ?? false;
-  const setSidebarCollapsed = store?.setSidebarCollapsed ?? (() => {});
+  const sidebarOpen = useAppStore((state) => state?.sidebarOpen) ?? false;
+  const setSidebarOpen = useAppStore((state) => state?.setSidebarOpen) ?? (() => {});
+  const sidebarCollapsed = useAppStore((state) => state?.sidebarCollapsed) ?? false;
+  const setSidebarCollapsed = useAppStore((state) => state?.setSidebarCollapsed) ?? (() => {});
 
   const [searchTerm, setSearchTerm] = useState('');
   const [openSubmenu, setOpenSubmenu] = useState<string | null>(null);
@@ -263,21 +255,21 @@ export function Sidebar() {
         `}
       >
         {/* Header da Logo */}
-        <div className="h-16 border-b border-slate-800/80 px-4 flex items-center justify-between shrink-0">
+        <div className="h-16 border-b border-slate-800/80 px-4.5 flex items-center justify-between shrink-0">
           <Link
             to={ROUTES.dashboard}
             className="flex items-center gap-3 overflow-hidden group"
           >
-            <div className="w-10 h-10 shrink-0 rounded-xl bg-gradient-to-tr from-blue-700 via-blue-600 to-indigo-500 flex items-center justify-center shadow-lg shadow-blue-600/20 group-hover:scale-105 transition-transform">
-              <span className="text-white font-black text-xl tracking-tighter">A</span>
+            <div className="w-9 h-9 shrink-0 rounded-xl bg-gradient-to-tr from-blue-700 via-blue-600 to-indigo-500 flex items-center justify-center shadow-md shadow-blue-600/25 group-hover:scale-105 transition-transform">
+              <span className="text-white font-black text-lg tracking-tighter">A</span>
             </div>
 
             {!col && (
               <div className="flex flex-col min-w-0">
-                <span className="font-bold text-white text-base tracking-tight truncate leading-tight">
+                <span className="font-bold text-white text-base tracking-tight truncate leading-none">
                   Atlhon Sales
                 </span>
-                <span className="text-[10px] font-semibold uppercase tracking-wider text-blue-400/90">
+                <span className="text-[10px] font-semibold uppercase tracking-wider text-blue-400 mt-1">
                   CRM • Gestão
                 </span>
               </div>
@@ -289,30 +281,30 @@ export function Sidebar() {
             onClick={() => setSidebarOpen(false)}
             className="lg:hidden p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800/60 transition-colors"
           >
-            <X size={20} />
+            <X size={18} />
           </button>
         </div>
 
         {/* Input de Busca */}
-        <div className="px-3 pt-4 pb-2 shrink-0">
+        <div className="px-4 pt-3 pb-1 shrink-0">
           {!col ? (
             <div className="relative group">
               <Search
-                size={16}
-                className="absolute left-3.5 top-3 text-slate-500 group-focus-within:text-blue-500 transition-colors"
+                size={15}
+                className="absolute left-3 top-2.5 text-slate-500 group-focus-within:text-blue-500 transition-colors"
               />
               <input
                 type="text"
                 placeholder="Buscar no sistema..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full bg-slate-900/80 border border-slate-800/80 pl-9 pr-8 py-2 rounded-xl text-xs text-slate-200 placeholder:text-slate-500 focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600/30 transition-all"
+                className="w-full bg-slate-900/80 border border-slate-800/80 pl-8.5 pr-7 py-1.5 rounded-xl text-xs text-slate-200 placeholder:text-slate-500 focus:outline-none focus:border-blue-600/80 focus:ring-1 focus:ring-blue-600/30 transition-all"
               />
               {searchTerm && (
                 <button
                   type="button"
                   onClick={() => setSearchTerm('')}
-                  className="absolute right-3 top-2.5 text-xs text-slate-500 hover:text-slate-300"
+                  className="absolute right-2.5 top-2 text-xs text-slate-500 hover:text-slate-300"
                 >
                   ✕
                 </button>
@@ -325,21 +317,21 @@ export function Sidebar() {
               title="Buscar no sistema"
               className="w-full flex justify-center py-2 text-slate-400 hover:text-white hover:bg-slate-900 rounded-xl transition-colors cursor-pointer"
             >
-              <Search size={18} />
+              <Search size={17} />
             </button>
           )}
         </div>
 
-        {/* ── NAVEGAÇÃO COM SCROLLBAR ULTRA-CLEAN ── */}
-        <nav className="flex-1 overflow-y-auto overflow-x-hidden sidebar-scrollbar px-3 py-3 space-y-4">
+        {/* Navegação */}
+        <nav className="flex-1 overflow-y-auto sidebar-scrollbar px-3.5 py-2 space-y-3.5">
           {filteredSections.map((section, secIdx) => (
             <div key={section.title}>
               {!col ? (
-                <p className="px-3 mb-2 mt-2 text-[10px] font-bold uppercase tracking-widest text-slate-500">
+                <p className="px-2.5 mb-1 mt-2 text-[10px] font-bold uppercase tracking-widest text-slate-500/90">
                   {section.title}
                 </p>
               ) : (
-                secIdx > 0 && <div className="my-3 mx-2 border-t border-slate-800/80" />
+                secIdx > 0 && <div className="my-2 mx-1 border-t border-slate-800/80" />
               )}
 
               <ul className="space-y-1">
@@ -360,7 +352,7 @@ export function Sidebar() {
                           type="button"
                           onClick={() => toggleSubmenu(item.label)}
                           className={`
-                            w-full relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium transition-all duration-200 group text-left cursor-pointer
+                            w-full relative flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-medium transition-all duration-200 group text-left cursor-pointer
                             ${
                               active
                                 ? 'bg-blue-600/10 text-white font-semibold'
@@ -371,7 +363,7 @@ export function Sidebar() {
                           {active && (
                             <motion.div
                               layoutId="activePill"
-                              className="absolute left-0 top-2 bottom-2 w-1 bg-blue-500 rounded-r-full shadow-[0_0_12px_rgba(59,130,246,0.8)]"
+                              className="absolute left-0 top-1.5 bottom-1.5 w-1 bg-blue-500 rounded-r-full shadow-[0_0_12px_rgba(59,130,246,0.8)]"
                             />
                           )}
 
@@ -391,7 +383,7 @@ export function Sidebar() {
                               </span>
                             )}
                             <ChevronDown
-                              size={15}
+                              size={14}
                               className={`text-slate-500 transition-transform duration-200 ${
                                 isOpen ? 'rotate-180 text-slate-300' : ''
                               }`}
@@ -408,7 +400,7 @@ export function Sidebar() {
                             }
                           }}
                           className={`
-                            relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium transition-all duration-200 group
+                            relative flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-medium transition-all duration-200 group
                             ${col ? 'justify-center' : ''}
                             ${
                               active
@@ -420,7 +412,7 @@ export function Sidebar() {
                           {active && (
                             <motion.div
                               layoutId="activePill"
-                              className="absolute left-0 top-2 bottom-2 w-1 bg-blue-500 rounded-r-full shadow-[0_0_12px_rgba(59,130,246,0.8)]"
+                              className="absolute left-0 top-1.5 bottom-1.5 w-1 bg-blue-500 rounded-r-full shadow-[0_0_12px_rgba(59,130,246,0.8)]"
                             />
                           )}
 
@@ -441,25 +433,26 @@ export function Sidebar() {
                         </Link>
                       )}
 
+                      {/* Popover em Modo Colapsado */}
                       {col && hoveredNav === item.label && (
-                        <div className="absolute left-full top-0 ml-2 z-50 bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl p-3 w-48 animate-fade-slide">
-                          <div className="flex items-center justify-between font-semibold text-xs text-white pb-2 mb-2 border-b border-slate-800">
+                        <div className="absolute left-full top-0 ml-2 z-50 bg-slate-900 border border-slate-800 rounded-xl shadow-2xl p-2.5 w-48">
+                          <div className="flex items-center justify-between font-semibold text-xs text-white pb-1.5 mb-1.5 border-b border-slate-800">
                             <span>{item.label}</span>
                             {item.badge && (
-                              <span className="bg-blue-500/10 text-blue-400 text-[10px] px-1.5 py-0.5 rounded-full">
+                              <span className="bg-blue-500/10 text-blue-400 text-[10px] px-1.5 py-0.5 rounded-full border border-blue-500/20">
                                 {item.badge}
                               </span>
                             )}
                           </div>
                           {hasSubmenu ? (
-                            <div className="space-y-1">
+                            <div className="space-y-0.5">
                               {item.submenu!.map((sub) => {
                                 const subActivePopover = isPathActive(sub.path);
                                 return (
                                   <Link
                                     key={sub.path}
                                     to={sub.path}
-                                    className={`block px-2.5 py-1.5 text-xs rounded-lg transition-colors ${
+                                    className={`block px-2 py-1 text-xs rounded-lg transition-colors ${
                                       subActivePopover
                                         ? 'text-blue-400 bg-blue-500/10 font-semibold'
                                         : 'text-slate-400 hover:text-white hover:bg-slate-800'
@@ -471,19 +464,20 @@ export function Sidebar() {
                               })}
                             </div>
                           ) : (
-                            <p className="text-[11px] text-slate-500">Clique para navegar</p>
+                            <p className="text-[10px] text-slate-500">Clique para navegar</p>
                           )}
                         </div>
                       )}
 
+                      {/* Submenu Expandido */}
                       <AnimatePresence>
                         {hasSubmenu && isOpen && !col && (
                           <motion.ul
                             initial={{ height: 0, opacity: 0 }}
                             animate={{ height: 'auto', opacity: 1 }}
                             exit={{ height: 0, opacity: 0 }}
-                            transition={{ duration: 0.2, ease: 'easeInOut' }}
-                            className="pl-8 pr-2 mt-1 space-y-0.5 border-l border-slate-800/80 ml-5 overflow-hidden"
+                            transition={{ duration: 0.18, ease: 'easeInOut' }}
+                            className="pl-6 pr-1 mt-1 space-y-0.5 border-l border-slate-800/80 ml-4.5 overflow-hidden"
                           >
                             {item.submenu!.map((sub) => {
                               const subActive = isPathActive(sub.path);
@@ -491,7 +485,7 @@ export function Sidebar() {
                                 <li key={sub.path}>
                                   <Link
                                     to={sub.path}
-                                    className={`block px-3 py-1.5 text-xs rounded-lg transition-colors truncate ${
+                                    className={`block px-2.5 py-1 text-xs rounded-lg transition-colors truncate ${
                                       subActive
                                         ? 'text-blue-400 font-semibold bg-blue-500/10'
                                         : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900/60'
@@ -518,27 +512,27 @@ export function Sidebar() {
           <div
             onClick={() => setShowProfileMenu(!showProfileMenu)}
             className={`
-              flex items-center gap-3 p-2 rounded-xl hover:bg-slate-900 cursor-pointer group transition-colors relative
+              flex items-center gap-3 p-1.5 rounded-xl hover:bg-slate-900 cursor-pointer group transition-colors relative
               ${col ? 'justify-center' : ''}
             `}
           >
             <div className="relative shrink-0">
-              <div className="w-9 h-9 rounded-xl bg-slate-800 border border-slate-700/80 flex items-center justify-center text-white text-xs font-semibold">
+              <div className="w-8 h-8 rounded-xl bg-slate-800 border border-slate-700/80 flex items-center justify-center text-white text-xs font-semibold">
                 AD
               </div>
-              <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-500 border-2 border-[#030712] rounded-full" />
+              <span className="absolute -bottom-0.5 -right-0.5 w-2 h-2 bg-emerald-500 border-2 border-[#030712] rounded-full" />
             </div>
 
             {!col && (
               <div className="flex-1 min-w-0">
-                <p className="text-xs font-semibold text-white truncate">Admin Demo</p>
+                <p className="text-xs font-semibold text-white truncate leading-tight">Admin Demo</p>
                 <p className="text-[10px] text-slate-500 truncate">admin@atlhon.com</p>
               </div>
             )}
 
             {!col && (
               <ChevronRight
-                size={16}
+                size={15}
                 className={`text-slate-500 group-hover:text-slate-300 transition-transform ${
                   showProfileMenu ? 'rotate-90' : ''
                 }`}
@@ -549,21 +543,21 @@ export function Sidebar() {
           <AnimatePresence>
             {showProfileMenu && (
               <motion.div
-                initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                initial={{ opacity: 0, y: 8, scale: 0.96 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                exit={{ opacity: 0, y: 8, scale: 0.96 }}
                 transition={{ duration: 0.15 }}
                 className={`
-                  absolute bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl p-2 z-50
-                  ${col ? 'bottom-3 left-20 w-48' : 'bottom-16 left-3 right-3'}
+                  absolute bg-slate-900 border border-slate-800 rounded-xl shadow-2xl p-1.5 z-50
+                  ${col ? 'bottom-2 left-20 w-48' : 'bottom-14 left-3 right-3'}
                 `}
               >
                 <button
                   type="button"
                   onClick={logout}
-                  className="w-full flex items-center gap-2.5 px-3 py-2 text-rose-400 hover:bg-rose-500/10 rounded-xl transition-colors text-xs font-medium cursor-pointer"
+                  className="w-full flex items-center gap-2 px-2.5 py-1.5 text-rose-400 hover:bg-rose-500/10 rounded-lg transition-colors text-xs font-medium cursor-pointer"
                 >
-                  <LogOut size={16} className="shrink-0" />
+                  <LogOut size={15} className="shrink-0" />
                   <span>Sair da conta</span>
                 </button>
               </motion.div>
@@ -572,18 +566,18 @@ export function Sidebar() {
         </div>
 
         {/* Botão Expandir / Recolher */}
-        <div className="hidden lg:block p-3 border-t border-slate-800/80 shrink-0">
+        <div className="hidden lg:block p-2.5 border-t border-slate-800/80 shrink-0">
           <button
             type="button"
             onClick={() => setSidebarCollapsed(!col)}
             title={col ? 'Expandir menu' : 'Recolher menu'}
-            className="w-full flex items-center justify-center gap-2 py-2 text-xs font-medium text-slate-500 hover:text-slate-200 hover:bg-slate-900 rounded-xl transition-colors cursor-pointer"
+            className="w-full flex items-center justify-center gap-2 py-1.5 text-xs font-medium text-slate-400 hover:text-slate-200 hover:bg-slate-900 rounded-xl transition-colors cursor-pointer"
           >
             {col ? (
-              <PanelLeftOpen size={18} />
+              <PanelLeftOpen size={17} />
             ) : (
               <>
-                <PanelLeftClose size={18} />
+                <PanelLeftClose size={17} />
                 <span>Recolher menu</span>
               </>
             )}

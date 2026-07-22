@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import { 
   Bell, 
-  BellRing,
   CheckCheck, 
   UserPlus, 
   DollarSign, 
@@ -11,7 +10,7 @@ import {
   X, 
   ChevronRight,
   Trash2,
-  Sparkles
+  Inbox
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -28,46 +27,46 @@ export interface Notification {
 }
 
 const INITIAL_NOTIFICATIONS: Notification[] = [
-  { id: 1, type: 'enrollment', title: 'Nova matrícula', desc: 'Ana Souza se matriculou no Plano Pro', time: 'há 5 min', read: false },
+  { id: 1, type: 'enrollment', title: 'Nova matrícula', desc: 'Ana Souza se matriculou no Plano Profissional', time: 'há 5 min', read: false },
   { id: 2, type: 'payment', title: 'Pagamento recebido', desc: 'R$ 299,00 confirmado — Bruno Lima', time: 'há 2h', read: false },
   { id: 3, type: 'alert', title: 'Aula cancelada', desc: 'Personal Training das 09h foi cancelado', time: 'há 4h', read: false },
-  { id: 4, type: 'renewal', title: 'Renovação aprovada', desc: 'Carla Mendes renovou o Plano Enterprise', time: 'ontem', read: true },
-  { id: 5, type: 'system', title: 'Atualização pendente', desc: 'Versão 2.1.0 do sistema disponível para instalação', time: '2 dias', read: true },
+  { id: 4, type: 'renewal', title: 'Renovação aprovada', desc: 'Carla Mendes renovou o Plano Corporativo', time: 'ontem', read: true },
+  { id: 5, type: 'system', title: 'Atualização do sistema', desc: 'Versão 2.1.0 disponível para o seu painel', time: '2 dias', read: true },
 ];
 
-/* ── Mapeamento Estrito de Estilos e Ícones da Lucide ── */
+/* ── Mapeamento Estrito de Estilos e Ícones Sóbrios ── */
 const TYPE_CONFIG: Record<
   NotificationType, 
   { icon: React.ElementType; badgeBg: string; dotBg: string; actionText: string }
 > = {
   enrollment: {
     icon: UserPlus,
-    badgeBg: 'bg-blue-50 text-blue-600 border-blue-200/60',
-    dotBg: 'bg-blue-500',
+    badgeBg: 'bg-blue-50 text-blue-700 border-blue-200/70',
+    dotBg: 'bg-blue-600',
     actionText: 'Ver Aluno',
   },
   payment: {
     icon: DollarSign,
-    badgeBg: 'bg-emerald-50 text-emerald-600 border-emerald-200/60',
-    dotBg: 'bg-emerald-500',
-    actionText: 'Ver Recibo',
+    badgeBg: 'bg-emerald-50 text-emerald-700 border-emerald-200/70',
+    dotBg: 'bg-emerald-600',
+    actionText: 'Ver Comprovante',
   },
   alert: {
     icon: AlertCircle,
-    badgeBg: 'bg-rose-50 text-rose-600 border-rose-200/60',
-    dotBg: 'bg-rose-500',
+    badgeBg: 'bg-rose-50 text-rose-700 border-rose-200/70',
+    dotBg: 'bg-rose-600',
     actionText: 'Ver Agenda',
   },
   renewal: {
     icon: RefreshCw,
-    badgeBg: 'bg-violet-50 text-violet-600 border-violet-200/60',
-    dotBg: 'bg-violet-500',
+    badgeBg: 'bg-indigo-50 text-indigo-700 border-indigo-200/70',
+    dotBg: 'bg-indigo-600',
     actionText: 'Ver Contrato',
   },
   system: {
     icon: Zap,
-    badgeBg: 'bg-amber-50 text-amber-600 border-amber-200/60',
-    dotBg: 'bg-amber-500',
+    badgeBg: 'bg-amber-50 text-amber-700 border-amber-200/70',
+    dotBg: 'bg-amber-600',
     actionText: 'Detalhes',
   },
 };
@@ -84,7 +83,6 @@ export function NotificationsDropdown({ onCountChange }: Props) {
 
   const unreadCount = useMemo(() => notifications.filter(n => !n.read).length, [notifications]);
 
-  // Sincroniza contador externo
   useEffect(() => {
     onCountChange?.(unreadCount);
   }, [unreadCount, onCountChange]);
@@ -130,32 +128,24 @@ export function NotificationsDropdown({ onCountChange }: Props) {
 
   return (
     <div ref={dropdownRef} className="relative inline-block text-left">
-      {/* ── BOTÃO DE NOTIFICAÇÃO ── */}
+      
+      {/* ── BOTÃO TRIGGER ── */}
       <button
         type="button"
         onClick={() => setOpen(prev => !prev)}
         className={`
-          relative w-9 h-9 flex items-center justify-center rounded-xl transition-all duration-200 cursor-pointer
-          ${open 
-            ? 'bg-blue-50 text-blue-600 ring-2 ring-blue-500/20' 
-            : 'text-slate-500 hover:text-slate-800 hover:bg-slate-100'
-          }
+          relative p-1.5 rounded-lg text-slate-500 transition-colors cursor-pointer focus:outline-none
+          ${open ? 'bg-slate-100 text-slate-900' : 'hover:text-slate-900 hover:bg-slate-100/80'}
         `}
         aria-label={`Notificações (${unreadCount} não lidas)`}
         aria-expanded={open}
       >
-        {/* Ícone Lucide dinâmico */}
-        {unreadCount > 0 ? (
-          <BellRing size={18} className="text-blue-600 animate-pulse" />
-        ) : (
-          <Bell size={18} />
-        )}
+        <Bell size={18} />
 
-        {/* Badge de Alerta */}
+        {/* Badge de Alerta Não Lido */}
         {unreadCount > 0 && (
-          <span className="absolute top-1.5 right-1.5 flex h-2.5 w-2.5">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75" />
-            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-blue-600" />
+          <span className="absolute top-1 right-1 flex h-2 w-2">
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-600 ring-2 ring-white" />
           </span>
         )}
       </button>
@@ -164,57 +154,57 @@ export function NotificationsDropdown({ onCountChange }: Props) {
       <AnimatePresence>
         {open && (
           <motion.div
-            initial={{ opacity: 0, y: 8, scale: 0.96 }}
+            initial={{ opacity: 0, y: 6, scale: 0.98 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 6, scale: 0.96 }}
-            transition={{ duration: 0.18, ease: 'easeOut' }}
-            className="absolute right-0 top-[calc(100%+8px)] w-[360px] sm:w-[390px] bg-white rounded-[24px] shadow-[0_12px_40px_rgba(0,0,0,0.08)] border border-slate-100/90 overflow-hidden z-50 flex flex-col"
+            exit={{ opacity: 0, y: 6, scale: 0.98 }}
+            transition={{ duration: 0.15, ease: 'easeOut' }}
+            className="absolute right-0 top-[calc(100%+6px)] w-80 sm:w-96 bg-white rounded-xl shadow-xl border border-slate-200/90 overflow-hidden z-50 flex flex-col"
           >
-            {/* ── HEADER ── */}
-            <div className="p-4 pb-3 border-b border-slate-100 bg-white/80 backdrop-blur-md">
-              <div className="flex items-center justify-between mb-3">
+            {/* ── CABEÇALHO ── */}
+            <div className="p-3 border-b border-slate-100 bg-slate-50/50 space-y-2.5">
+              <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <h3 className="font-bold text-slate-800 text-sm tracking-tight">Notificações</h3>
+                  <h3 className="font-semibold text-slate-900 text-xs">Notificações</h3>
                   {unreadCount > 0 && (
-                    <span className="px-2 py-0.5 text-[10px] font-bold bg-blue-50 text-blue-600 border border-blue-100 rounded-full">
+                    <span className="px-1.5 py-0.2 text-[10px] font-mono font-medium bg-blue-50 text-blue-700 border border-blue-200/60 rounded">
                       {unreadCount} novas
                     </span>
                   )}
                 </div>
 
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1">
                   {unreadCount > 0 && (
                     <button
                       type="button"
                       onClick={markAllAsRead}
-                      className="flex items-center gap-1 text-[11px] font-semibold text-blue-600 hover:text-blue-700 transition-colors cursor-pointer"
+                      className="flex items-center gap-1 text-[11px] font-medium text-slate-600 hover:text-slate-900 transition-colors cursor-pointer px-1.5 py-0.5 rounded hover:bg-slate-100"
                     >
-                      <CheckCheck size={14} />
-                      Marcar lidas
+                      <CheckCheck size={13} className="text-slate-400" />
+                      <span>Marcar lidas</span>
                     </button>
                   )}
                   {notifications.length > 0 && (
                     <button
                       type="button"
                       onClick={clearAll}
-                      title="Limpar todas as notificações"
-                      className="p-1 text-slate-400 hover:text-rose-500 rounded-lg transition-colors cursor-pointer"
+                      title="Limpar tudo"
+                      className="p-1 text-slate-400 hover:text-rose-600 rounded transition-colors cursor-pointer"
                     >
-                      <Trash2 size={14} />
+                      <Trash2 size={13} />
                     </button>
                   )}
                 </div>
               </div>
 
-              {/* ── ABAS DE NAVEGAÇÃO ── */}
-              <div className="flex bg-slate-100/80 p-0.5 rounded-xl text-xs font-medium">
+              {/* ── SELETOR DE ABAS ── */}
+              <div className="flex bg-slate-200/60 p-0.5 rounded-lg text-xs font-medium">
                 <button
                   type="button"
                   onClick={() => setActiveTab('all')}
-                  className={`flex-1 py-1.5 rounded-lg text-center transition-all cursor-pointer ${
+                  className={`flex-1 py-1 rounded text-center transition-all cursor-pointer text-[11px] ${
                     activeTab === 'all'
-                      ? 'bg-white text-slate-900 shadow-sm font-semibold'
-                      : 'text-slate-500 hover:text-slate-800'
+                      ? 'bg-white text-slate-900 font-semibold shadow-2xs'
+                      : 'text-slate-600 hover:text-slate-900'
                   }`}
                 >
                   Todas ({notifications.length})
@@ -222,10 +212,10 @@ export function NotificationsDropdown({ onCountChange }: Props) {
                 <button
                   type="button"
                   onClick={() => setActiveTab('unread')}
-                  className={`flex-1 py-1.5 rounded-lg text-center transition-all cursor-pointer ${
+                  className={`flex-1 py-1 rounded text-center transition-all cursor-pointer text-[11px] ${
                     activeTab === 'unread'
-                      ? 'bg-white text-slate-900 shadow-sm font-semibold'
-                      : 'text-slate-500 hover:text-slate-800'
+                      ? 'bg-white text-slate-900 font-semibold shadow-2xs'
+                      : 'text-slate-600 hover:text-slate-900'
                   }`}
                 >
                   Não lidas ({unreadCount})
@@ -234,17 +224,15 @@ export function NotificationsDropdown({ onCountChange }: Props) {
             </div>
 
             {/* ── LISTA DE NOTIFICAÇÕES ── */}
-            <div className="max-h-[360px] overflow-y-auto divide-y divide-slate-50 custom-scrollbar">
+            <div className="max-h-[320px] overflow-y-auto divide-y divide-slate-100 scrollbar-fine">
               {filteredNotifications.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-12 px-6 text-center">
-                  <div className="w-12 h-12 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-center mb-3 text-slate-300">
-                    <Sparkles size={22} />
-                  </div>
-                  <p className="text-xs font-semibold text-slate-700">Tudo limpo por aqui!</p>
-                  <p className="text-[11px] text-slate-400 mt-1">
+                <div className="flex flex-col items-center justify-center py-10 px-4 text-center">
+                  <Inbox size={20} className="text-slate-300 mb-1.5" />
+                  <p className="text-xs font-medium text-slate-700">Nenhuma notificação</p>
+                  <p className="text-[11px] text-slate-400 mt-0.5">
                     {activeTab === 'unread' 
-                      ? 'Você não possui mensagens não lidas.' 
-                      : 'Nenhuma notificação recente.'}
+                      ? 'Você leu todos os avisos recentes.' 
+                      : 'Sua caixa de entrada está limpa.'}
                   </p>
                 </div>
               ) : (
@@ -260,41 +248,41 @@ export function NotificationsDropdown({ onCountChange }: Props) {
                         initial={{ opacity: 0, height: 0 }}
                         animate={{ opacity: 1, height: 'auto' }}
                         exit={{ opacity: 0, height: 0 }}
-                        transition={{ duration: 0.2 }}
+                        transition={{ duration: 0.15 }}
                         onClick={() => markAsRead(item.id)}
                         className={`
-                          group relative flex gap-3.5 p-4 transition-colors cursor-pointer
-                          ${!item.read ? 'bg-blue-50/30 hover:bg-blue-50/50' : 'hover:bg-slate-50/80'}
+                          group relative flex items-start gap-3 p-3 transition-colors cursor-pointer text-xs
+                          ${!item.read ? 'bg-slate-50/90' : 'bg-white hover:bg-slate-50/50'}
                         `}
                       >
-                        {/* Ícone */}
-                        <div className={`w-9 h-9 rounded-xl border flex items-center justify-center shrink-0 ${config.badgeBg} mt-0.5`}>
-                          <Icon size={16} />
+                        {/* Ícone Indicador */}
+                        <div className={`w-7 h-7 rounded-md border flex items-center justify-center shrink-0 ${config.badgeBg} mt-0.5`}>
+                          <Icon size={14} />
                         </div>
 
                         {/* Conteúdo */}
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center justify-between gap-2">
-                            <p className={`text-xs font-semibold ${item.read ? 'text-slate-700' : 'text-slate-900'}`}>
+                            <p className={`text-xs font-medium truncate ${item.read ? 'text-slate-700' : 'text-slate-900 font-semibold'}`}>
                               {item.title}
                             </p>
 
                             <div className="flex items-center gap-1.5 shrink-0">
-                              <span className="text-[10px] text-slate-400 font-medium">{item.time}</span>
+                              <span className="text-[10px] font-mono text-slate-400">{item.time}</span>
                               {!item.read && (
                                 <span className={`w-1.5 h-1.5 rounded-full ${config.dotBg}`} />
                               )}
                             </div>
                           </div>
 
-                          <p className="text-[11px] text-slate-500 mt-1 leading-relaxed line-clamp-2">
+                          <p className="text-[11px] text-slate-500 mt-0.5 leading-snug line-clamp-2">
                             {item.desc}
                           </p>
 
-                          {/* Ação Contextual */}
-                          <div className="mt-2 flex items-center gap-1 text-[10px] font-bold text-blue-600 hover:text-blue-700">
+                          {/* Link / Ação Contextual */}
+                          <div className="mt-1.5 flex items-center gap-0.5 text-[10px] font-medium text-blue-600 hover:text-blue-700">
                             <span>{config.actionText}</span>
-                            <ChevronRight size={12} />
+                            <ChevronRight size={11} />
                           </div>
                         </div>
 
@@ -305,8 +293,8 @@ export function NotificationsDropdown({ onCountChange }: Props) {
                             e.stopPropagation();
                             dismiss(item.id);
                           }}
-                          className="opacity-0 group-hover:opacity-100 p-1 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-all self-start"
-                          aria-label="Dispensar notificação"
+                          className="opacity-0 group-hover:opacity-100 p-0.5 text-slate-400 hover:text-slate-700 rounded transition-opacity shrink-0"
+                          aria-label="Remover notificação"
                         >
                           <X size={13} />
                         </button>
@@ -317,15 +305,15 @@ export function NotificationsDropdown({ onCountChange }: Props) {
               )}
             </div>
 
-            {/* ── FOOTER ── */}
+            {/* ── RODAPÉ ── */}
             {notifications.length > 0 && (
-              <div className="p-3 border-t border-slate-100 bg-slate-50/50 text-center">
+              <div className="p-2 border-t border-slate-100 bg-slate-50/50 text-center">
                 <button
                   type="button"
-                  onClick={() => alert('Navegar para central de notificações')}
-                  className="w-full py-2 text-xs font-semibold text-slate-600 hover:text-blue-600 hover:bg-white rounded-xl transition-all border border-transparent hover:border-slate-200/80 cursor-pointer"
+                  onClick={() => setOpen(false)}
+                  className="w-full py-1 text-xs font-medium text-slate-600 hover:text-slate-900 transition-colors cursor-pointer"
                 >
-                  Ver central completa
+                  Fechar avisos
                 </button>
               </div>
             )}
