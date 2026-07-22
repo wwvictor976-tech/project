@@ -121,6 +121,23 @@
   }
 
   /* ==========================================================================
+     FORM ELEMENTS (Modal forms)
+  ========================================================================== */
+  .form-label {
+    @apply block text-[12px] font-semibold text-slate-600 mb-1.5 tracking-wide;
+  }
+  .form-input {
+    @apply w-full bg-white border border-slate-200 rounded-xl text-sm text-slate-800 placeholder:text-slate-400 px-3.5 py-2.5 focus:outline-none transition-all;
+  }
+  .form-input:focus {
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+  }
+  .form-error {
+    @apply text-[11px] font-medium text-rose-500 mt-1.5 flex items-center gap-1;
+  }
+
+  /* ==========================================================================
      DROPDOWN MENUS
   ========================================================================== */
   .dropdown-menu {

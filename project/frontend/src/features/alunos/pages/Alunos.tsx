@@ -119,7 +119,7 @@ export default function Alunos() {
 
   /* ── AÇÕES ── */
   const handleAddAluno = (data: NewAlunoFormData) => {
-    const initials = data.name.split(' ').filter(Boolean).slice(0, 2).map((p) => p[0].toUpperCase()).join('');
+    const initials = data.name.split(' ').filter(Boolean).slice(0, 2).map((p) => p.charAt(0).toUpperCase()).join('');
     const newAluno: Student = {
       id: students.length > 0 ? Math.max(...students.map((a) => a.id)) + 1 : 1,
       name: data.name,
