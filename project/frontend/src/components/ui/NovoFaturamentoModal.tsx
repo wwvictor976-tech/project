@@ -2,20 +2,23 @@ import { useEffect, useState, type FormEvent } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, CheckCircle2, Receipt, DollarSign, User, CalendarRange, Tag } from 'lucide-react';
 
-export type TransactionStatus = 'Pago' | 'Pendente' | 'Atrasado' | 'Cancelado';
+export type TransactionStatus = 'paid' | 'pending' | 'overdue' | 'cancelled' | 'draft';
 export type TransactionType = 'Receita' | 'Despesa';
-export type RevenueCategory = 'Planos & Mensalidades' | 'Personal Training' | 'Avaliação Física' | 'Taxa de Matrícula';
-export type ExpenseCategory = 'Infraestrutura / Aluguel' | 'Equipamentos' | 'Equipe / Pessoal' | 'Sistemas & Software' | 'Marketing';
+export type RevenueCategory = 'Mensalidades' | 'Serviços' | 'Matrículas' | 'Produtos' | 'Outras receitas';
+export type ExpenseCategory = 'Infraestrutura' | 'Equipamentos' | 'Equipe' | 'Sistemas' | 'Marketing' | 'Outras despesas';
 
 export interface NewTransactionFormData {
+  name: string;
   description: string;
   category: RevenueCategory | ExpenseCategory;
-  studentOrVendor: string;
+  counterpartyName: string;
   amount: number;
   type: TransactionType;
   status: TransactionStatus;
   date: string;
-  method: string;
+  accrualMonth: string;
+  paymentMethod: string;
+  notes: string;
 }
 
 interface NovoFaturamentoModalProps {
@@ -29,14 +32,17 @@ interface NovoFaturamentoModalProps {
 }
 
 const initialFormState: NewTransactionFormData = {
+  name: '',
   description: '',
-  category: 'Planos & Mensalidades',
-  studentOrVendor: '',
+  category: 'Mensalidades',
+  counterpartyName: '',
   amount: 0,
   type: 'Receita',
-  status: 'Pago',
+  status: 'paid',
   date: '',
-  method: '',
+  accrualMonth: '',
+  paymentMethod: '',
+  notes: '',
 };
 
 export function NovoFaturamentoModal({ isOpen, onClose, onSubmit, initialData, title, description, submitLabel }: NovoFaturamentoModalProps) {
@@ -45,6 +51,7 @@ export function NovoFaturamentoModal({ isOpen, onClose, onSubmit, initialData, t
     return {
       ...initialFormState,
       date: new Date().toISOString().slice(0, 10),
+      accrualMonth: new Date().toISOString().slice(0, 7),
     };
   };
   const [formData, setFormData] = useState<NewTransactionFormData>(() => buildInitialForm(initialData));
@@ -112,14 +119,14 @@ export function NovoFaturamentoModal({ isOpen, onClose, onSubmit, initialData, t
                     <label className="form-label">Descrição *</label>
                     <div className="relative">
                       <Receipt size={13} className="absolute left-2.5 top-2.5 text-slate-400 pointer-events-none" />
-                      <input required value={formData.description} onChange={(e) => handleChange('description', e.target.value)} placeholder="Descrição do lançamento" className="form-input pl-8" />
+                      <input required value={formData.name} onChange={(e) => handleChange('name', e.target.value)} placeholder="Nome do lançamento" className="form-input pl-8" />
                     </div>
                   </div>
                   <div>
                     <label className="form-label">Aluno / Fornecedor *</label>
                     <div className="relative">
                       <User size={13} className="absolute left-2.5 top-2.5 text-slate-400 pointer-events-none" />
-                      <input required value={formData.studentOrVendor} onChange={(e) => handleChange('studentOrVendor', e.target.value)} placeholder="Aluno ou fornecedor" className="form-input pl-8" />
+                      <input required value={formData.counterpartyName} onChange={(e) => handleChange('counterpartyName', e.target.value)} placeholder="Aluno ou fornecedor" className="form-input pl-8" />
                     </div>
                   </div>
                 </div>
@@ -135,10 +142,11 @@ export function NovoFaturamentoModal({ isOpen, onClose, onSubmit, initialData, t
                   <div>
                     <label className="form-label">Status</label>
                     <select value={formData.status} onChange={(e) => handleChange('status', e.target.value)} className="form-input cursor-pointer">
-                      <option value="Pago">Pago</option>
-                      <option value="Pendente">Pendente</option>
-                      <option value="Atrasado">Atrasado</option>
-                      <option value="Cancelado">Cancelado</option>
+                      <option value="paid">Pago</option>
+                      <option value="pending">Pendente</option>
+                      <option value="overdue">Atrasado</option>
+                      <option value="cancelled">Cancelado</option>
+                      <option value="draft">Rascunho</option>
                     </select>
                   </div>
                 </div>
@@ -151,18 +159,20 @@ export function NovoFaturamentoModal({ isOpen, onClose, onSubmit, initialData, t
                       <select value={formData.category} onChange={(e) => handleChange('category', e.target.value)} className="form-input pl-8 cursor-pointer">
                         {formData.type === 'Receita' ? (
                           <>
-                            <option value="Planos & Mensalidades">Planos & Mensalidades</option>
-                            <option value="Personal Training">Personal Training</option>
-                            <option value="Avaliação Física">Avaliação Física</option>
-                            <option value="Taxa de Matrícula">Taxa de Matrícula</option>
+                            <option value="Mensalidades">Mensalidades</option>
+                            <option value="Serviços">Serviços</option>
+                            <option value="Matrículas">Matrículas</option>
+                            <option value="Produtos">Produtos</option>
+                            <option value="Outras receitas">Outras receitas</option>
                           </>
                         ) : (
                           <>
-                            <option value="Infraestrutura / Aluguel">Infraestrutura / Aluguel</option>
+                            <option value="Infraestrutura">Infraestrutura</option>
                             <option value="Equipamentos">Equipamentos</option>
-                            <option value="Equipe / Pessoal">Equipe / Pessoal</option>
-                            <option value="Sistemas & Software">Sistemas & Software</option>
+                            <option value="Equipe">Equipe</option>
+                            <option value="Sistemas">Sistemas</option>
                             <option value="Marketing">Marketing</option>
+                            <option value="Outras despesas">Outras despesas</option>
                           </>
                         )}
                       </select>
@@ -172,7 +182,7 @@ export function NovoFaturamentoModal({ isOpen, onClose, onSubmit, initialData, t
                     <label className="form-label">Forma de Pagamento</label>
                     <div className="relative">
                       <DollarSign size={13} className="absolute left-2.5 top-2.5 text-slate-400 pointer-events-none" />
-                      <input value={formData.method} onChange={(e) => handleChange('method', e.target.value)} placeholder="Pix, Cartão, Boleto" className="form-input pl-8" />
+                      <input value={formData.paymentMethod} onChange={(e) => handleChange('paymentMethod', e.target.value)} placeholder="Pix, Cartão, Boleto" className="form-input pl-8" />
                     </div>
                   </div>
                 </div>
@@ -190,6 +200,7 @@ export function NovoFaturamentoModal({ isOpen, onClose, onSubmit, initialData, t
                     </div>
                   </div>
                 </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3"><div><label className="form-label">Competência</label><input type="month" value={formData.accrualMonth} onChange={(e) => handleChange('accrualMonth', e.target.value)} className="form-input" /></div><div><label className="form-label">Observações</label><input value={formData.notes} onChange={(e) => handleChange('notes', e.target.value)} placeholder="Observações e preparação para anexos" className="form-input" /></div></div>
               </div>
 
               <div className="pt-3 border-t border-slate-100 flex items-center justify-end gap-2">

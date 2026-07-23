@@ -298,23 +298,14 @@ function Auth() {
     if (nextErrors.name) shakeField("name");
     if (nextErrors.email || nextErrors.password || nextErrors.name) return;
 
-    setStatus("loading");
-    const id = window.setTimeout(() => {
-      setStatus("success");
-      const rid = window.setTimeout(() => {
-        login("mock-token-demo", {
-          id: "demo-user",
-          name: "Usuário Demo",
-          email: "demo@atlhon.com",
-          role: "Administrador",
-        });
-        navigate(ROUTES.dashboard);
-        timeouts.current = timeouts.current.filter((t) => t !== rid);
-      }, 900);
-      timeouts.current.push(rid);
-      timeouts.current = timeouts.current.filter((t) => t !== id);
-    }, 900);
-    timeouts.current.push(id);
+    setStatus("success");
+    login(`pending-backend-session-${Date.now()}`, {
+      id: crypto.randomUUID(),
+      name: values.name || values.email.split("@")[0] || "Usuário autenticado",
+      email: values.email,
+      role: "Administrador",
+    });
+    navigate(ROUTES.dashboard);
   };
 
   return (

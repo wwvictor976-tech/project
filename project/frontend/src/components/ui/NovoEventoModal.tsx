@@ -182,7 +182,6 @@ export function NovoEventoModal({ isOpen, onClose, onSubmit, defaultDate, defaul
       return;
     }
     setIsSubmitting(true);
-    await new Promise((r) => setTimeout(r, 200));
     onSubmit(form);
     setIsSubmitting(false);
     onClose();
