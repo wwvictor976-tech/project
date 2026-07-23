@@ -40,7 +40,7 @@ interface SearchItem {
 
 /* ── Mapeamento Base do Sistema ── */
 const PAGES = [
-  { title: 'Dashboard', subtitle: 'Visão geral da plataforma e métricas', path: ROUTES.dashboard, icon: LayoutDashboard },
+  { id: 'page-dashboard', type: 'pages', title: 'Dashboard', subtitle: 'Visão geral da plataforma e métricas', path: ROUTES.dashboard, icon: LayoutDashboard },
   { title: 'Alunos', subtitle: 'Gestão de matrículas e cadastros', path: ROUTES.alunos, icon: Users },
   { title: 'Treinos', subtitle: 'Fichas e prescrições de treinos', path: ROUTES.treinos, icon: Dumbbell },
   { title: 'Dietas', subtitle: 'Planos alimentares e metas nutricionais', path: ROUTES.dietas, icon: Utensils },
@@ -51,13 +51,8 @@ const PAGES = [
   { title: 'Configurações', subtitle: 'Ajustes e preferências do sistema', path: ROUTES.configuracoes, icon: Settings },
 ];
 
-const STUDENTS = [
-  { title: 'Ana Souza', subtitle: 'ana@email.com • Plano Profissional', initials: 'AS', plan: 'Profissional' },
-  { title: 'Bruno Lima', subtitle: 'bruno@email.com • Plano Básico', initials: 'BL', plan: 'Básico' },
-  { title: 'Carla Mendes', subtitle: 'carla@email.com • Plano Corporativo', initials: 'CM', plan: 'Corporativo' },
-  { title: 'Diego Rocha', subtitle: 'diego@email.com • Plano Básico', initials: 'DR', plan: 'Básico' },
-  { title: 'Elisa Ferreira', subtitle: 'elisa@email.com • Plano Profissional', initials: 'EF', plan: 'Profissional' },
-];
+const STUDENTS: SearchItem[] = [];
+
 
 export function SearchModal({ open, onClose }: Props) {
   const [query, setQuery] = useState('');
@@ -86,35 +81,10 @@ export function SearchModal({ open, onClose }: Props) {
     onClose();
   }, [navigate, onClose]);
 
-  /* Lista de Ações Rápidas estáticas */
   const QUICK_ACTIONS: SearchItem[] = useMemo(() => [
-    {
-      id: 'act-1',
-      type: 'actions',
-      title: 'Cadastrar Novo Aluno',
-      subtitle: 'Abrir formulário de cadastro',
-      icon: Plus,
-      badge: 'Atalho',
-      action: () => alert('Modal de Novo Aluno')
-    },
-    {
-      id: 'act-2',
-      type: 'actions',
-      title: 'Criar Ficha de Treino',
-      subtitle: 'Prescrever exercícios e séries',
-      icon: Dumbbell,
-      badge: 'Treinos',
-      action: () => alert('Construtor de Treino')
-    },
-    {
-      id: 'act-3',
-      type: 'actions',
-      title: 'Nova Dieta',
-      subtitle: 'Definir plano alimentar e macronutrientes',
-      icon: Utensils,
-      badge: 'Nutrição',
-      action: () => alert('Formulário de Dieta')
-    }
+    { id: 'act-student', type: 'actions', title: 'Cadastrar Novo Aluno', subtitle: 'Ir para a área de alunos', icon: Plus, badge: 'Ação', path: ROUTES.alunos },
+    { id: 'act-workout', type: 'actions', title: 'Criar Ficha de Treino', subtitle: 'Ir para a área de treinos', icon: Dumbbell, badge: 'Ação', path: ROUTES.treinos },
+    { id: 'act-diet', type: 'actions', title: 'Nova Dieta', subtitle: 'Ir para a área de dietas', icon: Utensils, badge: 'Ação', path: ROUTES.dietas },
   ], []);
 
   /* Cálculo Otimizado de Resultados (Limitado a no máximo 8 itens) */
@@ -142,7 +112,7 @@ export function SearchModal({ open, onClose }: Props) {
     // Alunos
     if (selectedCategory === 'all' || selectedCategory === 'students') {
       STUDENTS.forEach(s => {
-        if (!q || s.title.toLowerCase().includes(q) || s.subtitle.toLowerCase().includes(q)) {
+        if (!q || s.title.toLowerCase().includes(q) || (s.subtitle ?? '').toLowerCase().includes(q)) {
           items.push({
             id: `s-${s.title}`,
             type: 'students',
@@ -150,8 +120,8 @@ export function SearchModal({ open, onClose }: Props) {
             subtitle: s.subtitle,
             path: `${ROUTES.alunos}?search=${encodeURIComponent(s.title)}`,
             icon: Users,
-            avatarInitials: s.initials,
-            badge: s.plan
+            avatarInitials: s.avatarInitials,
+            badge: s.badge
           });
         }
       });

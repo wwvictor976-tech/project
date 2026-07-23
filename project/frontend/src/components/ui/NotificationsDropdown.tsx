@@ -26,13 +26,7 @@ export interface Notification {
   link?: string;
 }
 
-const INITIAL_NOTIFICATIONS: Notification[] = [
-  { id: 1, type: 'enrollment', title: 'Nova matrícula', desc: 'Ana Souza se matriculou no Plano Profissional', time: 'há 5 min', read: false },
-  { id: 2, type: 'payment', title: 'Pagamento recebido', desc: 'R$ 299,00 confirmado — Bruno Lima', time: 'há 2h', read: false },
-  { id: 3, type: 'alert', title: 'Aula cancelada', desc: 'Personal Training das 09h foi cancelado', time: 'há 4h', read: false },
-  { id: 4, type: 'renewal', title: 'Renovação aprovada', desc: 'Carla Mendes renovou o Plano Corporativo', time: 'ontem', read: true },
-  { id: 5, type: 'system', title: 'Atualização do sistema', desc: 'Versão 2.1.0 disponível para o seu painel', time: '2 dias', read: true },
-];
+const INITIAL_NOTIFICATIONS: Notification[] = [];
 
 /* ── Mapeamento Estrito de Estilos e Ícones Sóbrios ── */
 const TYPE_CONFIG: Record<

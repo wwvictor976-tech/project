@@ -69,7 +69,7 @@ const NAV_SECTIONS: NavSection[] = [
     title: 'Visão Geral',
     items: [
       { label: 'Dashboard', path: ROUTES.dashboard, icon: LayoutDashboard },
-      { label: 'Agenda', path: ROUTES.agenda, icon: Calendar, badge: '3' },
+      { label: 'Agenda', path: ROUTES.agenda, icon: Calendar },
     ],
   },
   {
@@ -79,7 +79,6 @@ const NAV_SECTIONS: NavSection[] = [
         label: 'Alunos',
         path: ROUTES.alunos,
         icon: Users,
-        badge: '42',
         submenu: [
           { label: 'Todos os Alunos', path: ROUTES.alunos },
           { label: 'Novos Cadastros', path: `${ROUTES.alunos}?status=Pendente` },
@@ -91,7 +90,6 @@ const NAV_SECTIONS: NavSection[] = [
         label: 'Treinos',
         path: ROUTES.treinos,
         icon: Dumbbell,
-        badge: '8',
         submenu: [
           { label: 'Todas as Fichas', path: ROUTES.treinos },
           { label: 'Treinos Ativos', path: `${ROUTES.treinos}?status=Ativo` },
@@ -103,7 +101,6 @@ const NAV_SECTIONS: NavSection[] = [
         label: 'Dietas',
         path: ROUTES.dietas,
         icon: Utensils,
-        badge: '6',
         submenu: [
           { label: 'Todos os Planos', path: ROUTES.dietas },
           { label: 'Planos Ativos', path: `${ROUTES.dietas}?status=Ativa` },
@@ -525,8 +522,8 @@ export function Sidebar() {
 
             {!col && (
               <div className="flex-1 min-w-0">
-                <p className="text-xs font-semibold text-white truncate leading-tight">Admin Demo</p>
-                <p className="text-[10px] text-slate-500 truncate">admin@atlhon.com</p>
+                <p className="text-xs font-semibold text-white truncate leading-tight">Perfil</p>
+                <p className="text-[10px] text-slate-500 truncate">Dados da conta</p>
               </div>
             )}
 

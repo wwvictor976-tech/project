@@ -164,7 +164,7 @@ export function NovoAlunoModal({ isOpen, onClose, onSubmit, initialData, title, 
                       required
                       value={formData.name}
                       onChange={(e) => handleChange('name', e.target.value)}
-                      placeholder="Ex: Mariana Silva"
+                      placeholder="Nome completo"
                       className="form-input pl-8 font-medium"
                     />
                   </div>
@@ -293,7 +293,7 @@ export function NovoAlunoModal({ isOpen, onClose, onSubmit, initialData, title, 
                         type="text"
                         value={formData.allergies}
                         onChange={(e) => handleChange('allergies', e.target.value)}
-                        placeholder="Ex: Lactose, Poeira..."
+                        placeholder="Informe restrições relevantes"
                         className="form-input pl-8"
                       />
                     </div>
@@ -307,7 +307,7 @@ export function NovoAlunoModal({ isOpen, onClose, onSubmit, initialData, title, 
                         type="text"
                         value={formData.medications}
                         onChange={(e) => handleChange('medications', e.target.value)}
-                        placeholder="Ex: Anti-hipertensivo..."
+                        placeholder="Informe medicamentos em uso"
                         className="form-input pl-8"
                       />
                     </div>

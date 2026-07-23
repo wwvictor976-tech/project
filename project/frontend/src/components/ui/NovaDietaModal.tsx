@@ -30,17 +30,17 @@ interface NovaDietaModalProps {
 }
 
 const initialFormState: NewDietFormData = {
-  name: 'Plano Nutricional',
+  name: '',
   student: '',
   goal: 'Manutenção',
   status: 'Ativa',
-  calories: 2200,
-  protein: 180,
-  carbs: 220,
-  fat: 70,
+  calories: 0,
+  protein: 0,
+  carbs: 0,
+  fat: 0,
   startDate: '',
-  nutritionist: 'Marta Silva',
-  adherence: 88,
+  nutritionist: '',
+  adherence: 0,
 };
 
 export function NovaDietaModal({ isOpen, onClose, onSubmit, initialData, title, description, submitLabel }: NovaDietaModalProps) {
@@ -116,14 +116,14 @@ export function NovaDietaModal({ isOpen, onClose, onSubmit, initialData, title, 
                     <label className="form-label">Nome do Plano *</label>
                     <div className="relative">
                       <Leaf size={13} className="absolute left-2.5 top-2.5 text-slate-400 pointer-events-none" />
-                      <input required value={formData.name} onChange={(e) => handleChange('name', e.target.value)} placeholder="Plano Nutricional" className="form-input pl-8" />
+                      <input required value={formData.name} onChange={(e) => handleChange('name', e.target.value)} placeholder="Nome do plano" className="form-input pl-8" />
                     </div>
                   </div>
                   <div>
                     <label className="form-label">Aluno *</label>
                     <div className="relative">
                       <User size={13} className="absolute left-2.5 top-2.5 text-slate-400 pointer-events-none" />
-                      <input required value={formData.student} onChange={(e) => handleChange('student', e.target.value)} placeholder="Ex: Ana Souza" className="form-input pl-8" />
+                      <input required value={formData.student} onChange={(e) => handleChange('student', e.target.value)} placeholder="Nome do aluno" className="form-input pl-8" />
                     </div>
                   </div>
                 </div>
@@ -153,7 +153,7 @@ export function NovaDietaModal({ isOpen, onClose, onSubmit, initialData, title, 
                     <label className="form-label">Nutricionista</label>
                     <div className="relative">
                       <Leaf size={13} className="absolute left-2.5 top-2.5 text-slate-400 pointer-events-none" />
-                      <input value={formData.nutritionist} onChange={(e) => handleChange('nutritionist', e.target.value)} placeholder="Marta Silva" className="form-input pl-8" />
+                      <input value={formData.nutritionist} onChange={(e) => handleChange('nutritionist', e.target.value)} placeholder="Nome do nutricionista" className="form-input pl-8" />
                     </div>
                   </div>
                   <div>

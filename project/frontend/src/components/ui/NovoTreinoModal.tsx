@@ -31,14 +31,14 @@ interface NovoTreinoModalProps {
 const initialFormState: NewWorkoutFormData = {
   studentName: '',
   goal: 'Hipertrofia',
-  division: 'Peito / Costas / Pernas',
-  exercisesCount: 8,
-  weeklyFrequency: '3x por semana',
+  division: '',
+  exercisesCount: 0,
+  weeklyFrequency: '',
   startDate: '',
   endDate: '',
-  adherenceRate: 85,
+  adherenceRate: 0,
   status: 'Ativo',
-  instructor: 'Bruno Costa',
+  instructor: '',
 };
 
 export function NovoTreinoModal({ isOpen, onClose, onSubmit, initialData, title, description, submitLabel }: NovoTreinoModalProps) {
@@ -118,7 +118,7 @@ export function NovoTreinoModal({ isOpen, onClose, onSubmit, initialData, title,
                       required
                       value={formData.studentName}
                       onChange={(e) => handleChange('studentName', e.target.value)}
-                      placeholder="Ex: Julia Mendes"
+                      placeholder="Nome do aluno"
                       className="form-input pl-8"
                     />
                   </div>
@@ -153,14 +153,14 @@ export function NovoTreinoModal({ isOpen, onClose, onSubmit, initialData, title,
                     <label className="form-label">Divisão / Prescrição</label>
                     <div className="relative">
                       <ClipboardList size={13} className="absolute left-2.5 top-2.5 text-slate-400 pointer-events-none" />
-                      <input value={formData.division} onChange={(e) => handleChange('division', e.target.value)} placeholder="Peito / Costas / Pernas" className="form-input pl-8" />
+                      <input value={formData.division} onChange={(e) => handleChange('division', e.target.value)} placeholder="Divisão do treino" className="form-input pl-8" />
                     </div>
                   </div>
                   <div>
                     <label className="form-label">Personal / Instrutor</label>
                     <div className="relative">
                       <Dumbbell size={13} className="absolute left-2.5 top-2.5 text-slate-400 pointer-events-none" />
-                      <input value={formData.instructor} onChange={(e) => handleChange('instructor', e.target.value)} placeholder="Bruno Costa" className="form-input pl-8" />
+                      <input value={formData.instructor} onChange={(e) => handleChange('instructor', e.target.value)} placeholder="Nome do instrutor" className="form-input pl-8" />
                     </div>
                   </div>
                 </div>

@@ -65,7 +65,7 @@ export function ProfileDropdown() {
       label: 'Central de Suporte',
       action: () => {
         setOpen(false);
-        window.open('https://support.atlhon.com', '_blank');
+        navigate(ROUTES.ajuda);
       },
     },
   ];
@@ -90,7 +90,7 @@ export function ProfileDropdown() {
         </div>
 
         <div className="hidden sm:block text-left leading-tight">
-          <p className="text-xs font-medium text-slate-900">Admin Demo</p>
+          <p className="text-xs font-medium text-slate-900">Perfil</p>
           <p className="text-[10px] text-slate-500 font-mono">Administrador</p>
         </div>
 
@@ -117,8 +117,8 @@ export function ProfileDropdown() {
                   AD
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="font-semibold text-slate-900 truncate">Admin Demo</p>
-                  <p className="text-[11px] text-slate-500 truncate font-mono">admin@atlhon.com</p>
+                  <p className="font-semibold text-slate-900 truncate">Perfil</p>
+                  <p className="text-[11px] text-slate-500 truncate font-mono">Dados da conta</p>
                 </div>
               </div>
 

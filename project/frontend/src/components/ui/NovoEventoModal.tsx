@@ -235,7 +235,7 @@ export function NovoEventoModal({ isOpen, onClose, onSubmit, defaultDate, defaul
                   type="text"
                   value={form.title}
                   onChange={(e) => setField('title', e.target.value)}
-                  placeholder="Ex: Treino Funcional, Avaliação Trimestral..."
+                  placeholder="Título do evento"
                   className={`form-input ${errors.title ? 'border-rose-500' : ''}`}
                   maxLength={80}
                 />
@@ -336,7 +336,7 @@ export function NovoEventoModal({ isOpen, onClose, onSubmit, defaultDate, defaul
                     type="text"
                     value={form.duration}
                     onChange={(e) => setField('duration', e.target.value)}
-                    placeholder="Ex: 1h45min"
+                    placeholder="Duração personalizada"
                     className="form-input mt-2"
                     autoFocus
                   />
@@ -368,7 +368,7 @@ export function NovoEventoModal({ isOpen, onClose, onSubmit, defaultDate, defaul
                       type="text"
                       value={form.location}
                       onChange={(e) => setField('location', e.target.value)}
-                      placeholder="Ex: Sala 02, Studio A"
+                      placeholder="Local do evento"
                       className={`form-input pl-8 ${errors.location ? 'border-rose-500' : ''}`}
                     />
                   </div>

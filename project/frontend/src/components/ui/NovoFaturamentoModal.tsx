@@ -29,14 +29,14 @@ interface NovoFaturamentoModalProps {
 }
 
 const initialFormState: NewTransactionFormData = {
-  description: 'Mensalidade',
+  description: '',
   category: 'Planos & Mensalidades',
   studentOrVendor: '',
-  amount: 250,
+  amount: 0,
   type: 'Receita',
   status: 'Pago',
   date: '',
-  method: 'Pix',
+  method: '',
 };
 
 export function NovoFaturamentoModal({ isOpen, onClose, onSubmit, initialData, title, description, submitLabel }: NovoFaturamentoModalProps) {
@@ -112,14 +112,14 @@ export function NovoFaturamentoModal({ isOpen, onClose, onSubmit, initialData, t
                     <label className="form-label">Descrição *</label>
                     <div className="relative">
                       <Receipt size={13} className="absolute left-2.5 top-2.5 text-slate-400 pointer-events-none" />
-                      <input required value={formData.description} onChange={(e) => handleChange('description', e.target.value)} placeholder="Ex: Mensalidade" className="form-input pl-8" />
+                      <input required value={formData.description} onChange={(e) => handleChange('description', e.target.value)} placeholder="Descrição do lançamento" className="form-input pl-8" />
                     </div>
                   </div>
                   <div>
                     <label className="form-label">Aluno / Fornecedor *</label>
                     <div className="relative">
                       <User size={13} className="absolute left-2.5 top-2.5 text-slate-400 pointer-events-none" />
-                      <input required value={formData.studentOrVendor} onChange={(e) => handleChange('studentOrVendor', e.target.value)} placeholder="Ex: Carla Lima" className="form-input pl-8" />
+                      <input required value={formData.studentOrVendor} onChange={(e) => handleChange('studentOrVendor', e.target.value)} placeholder="Aluno ou fornecedor" className="form-input pl-8" />
                     </div>
                   </div>
                 </div>
